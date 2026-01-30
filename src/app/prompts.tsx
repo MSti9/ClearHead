@@ -183,7 +183,8 @@ export default function PromptsScreen() {
 
   const handleSelectPrompt = (prompt: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push({
+    // Replace the prompts modal with new-entry so back goes to home
+    router.replace({
       pathname: '/new-entry',
       params: { prompt },
     });
@@ -192,7 +193,8 @@ export default function PromptsScreen() {
   const handleRandomPrompt = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const { prompt } = getRandomPrompt();
-    router.push({
+    // Replace the prompts modal with new-entry so back goes to home
+    router.replace({
       pathname: '/new-entry',
       params: { prompt },
     });
