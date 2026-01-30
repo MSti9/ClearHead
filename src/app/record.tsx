@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { X, Mic, Square, Check, Pause, Play } from 'lucide-react-native';
+import { X, Mic, Square, Check, Pause, Play, RotateCcw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
@@ -26,6 +26,34 @@ function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+async function transcribeAudio(uri: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', {
+    uri,
+    type: 'audio/m4a',
+    name: 'recording.m4a',
+  } as unknown as Blob);
+  formData.append('model', 'gpt-4o-mini-transcribe');
+  formData.append('response_format', 'json');
+
+  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Transcription error:', errorText);
+    throw new Error('Transcription failed');
+  }
+
+  const result = await response.json();
+  return result.text;
 }
 
 function PulsingRing() {
@@ -124,6 +152,8 @@ export default function RecordScreen() {
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
   const [hasRecorded, setHasRecorded] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -160,6 +190,7 @@ export default function RecordScreen() {
       recordingRef.current = recording;
       setIsRecording(true);
       setHasRecorded(true);
+      setRecordingUri(null);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
       timerRef.current = setInterval(() => {
@@ -194,27 +225,47 @@ export default function RecordScreen() {
         clearInterval(timerRef.current);
       }
       await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      setRecordingUri(uri);
       setIsRecording(false);
       setIsPaused(false);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   };
 
-  const saveRecording = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    addEntry({
-      content: `Voice note recorded for ${formatDuration(duration)}. (Voice transcription would appear here with AI integration)`,
-      type: 'voice',
-      voiceDuration: duration,
-    });
-    router.back();
+  const saveRecording = async () => {
+    if (!recordingUri) return;
+
+    setIsTranscribing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    try {
+      const transcription = await transcribeAudio(recordingUri);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      addEntry({
+        content: transcription,
+        type: 'voice',
+        voiceDuration: duration,
+      });
+      router.back();
+    } catch (error) {
+      console.error('Transcription failed:', error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      // Save without transcription as fallback
+      addEntry({
+        content: `Voice note (${formatDuration(duration)}) - Transcription unavailable. Please check your connection and try again.`,
+        type: 'voice',
+        voiceDuration: duration,
+      });
+      router.back();
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   const handleMainButton = () => {
-    buttonScale.value = withSequence(
-      withSpring(0.9),
-      withSpring(1)
-    );
+    buttonScale.value = withSequence(withSpring(0.9), withSpring(1));
 
     if (!isRecording && !hasRecorded) {
       startRecording();
@@ -228,9 +279,31 @@ export default function RecordScreen() {
     router.back();
   };
 
+  const handleReRecord = () => {
+    setDuration(0);
+    setHasRecorded(false);
+    setRecordingUri(null);
+    recordingRef.current = null;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   const mainButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
+
+  const getPromptText = () => {
+    if (isTranscribing) return 'Transcribing...';
+    if (!hasRecorded) return 'What is on your mind?';
+    if (isRecording) return 'Take your time...';
+    return 'Ready to save?';
+  };
+
+  const getSubText = () => {
+    if (isTranscribing) return 'Converting your voice to text';
+    if (!hasRecorded) return 'Tap to start recording';
+    if (isRecording) return 'Speak freely. No one else will hear this.';
+    return 'Your words will be transcribed';
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
@@ -242,7 +315,9 @@ export default function RecordScreen() {
         >
           <Pressable
             onPress={handleClose}
+            disabled={isTranscribing}
             className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center"
+            style={{ opacity: isTranscribing ? 0.5 : 1 }}
           >
             <X size={20} color="#78716C" strokeWidth={2} />
           </Pressable>
@@ -260,21 +335,13 @@ export default function RecordScreen() {
               style={{ fontFamily: 'CormorantGaramond_500Medium' }}
               className="text-2xl text-stone-600 text-center mb-2"
             >
-              {!hasRecorded
-                ? 'What is on your mind?'
-                : isRecording
-                ? 'Take your time...'
-                : 'Ready to save?'}
+              {getPromptText()}
             </Text>
             <Text
               style={{ fontFamily: 'DMSans_400Regular' }}
               className="text-stone-400 text-center"
             >
-              {!hasRecorded
-                ? 'Tap to start recording'
-                : isRecording
-                ? 'Speak freely. No one else will hear this.'
-                : 'You can save or re-record'}
+              {getSubText()}
             </Text>
           </Animated.View>
 
@@ -287,6 +354,13 @@ export default function RecordScreen() {
               {Array.from({ length: 20 }).map((_, i) => (
                 <WaveformBar key={i} index={i} isRecording={isRecording && !isPaused} />
               ))}
+            </Animated.View>
+          )}
+
+          {/* Transcribing indicator */}
+          {isTranscribing && (
+            <Animated.View entering={FadeIn} className="mb-8">
+              <ActivityIndicator size="large" color="#C4775A" />
             </Animated.View>
           )}
 
@@ -305,7 +379,11 @@ export default function RecordScreen() {
               {isRecording && <PulsingRing />}
               <AnimatedPressable
                 onPress={handleMainButton}
-                style={[mainButtonStyle]}
+                disabled={isTranscribing || (!isRecording && hasRecorded)}
+                style={[
+                  mainButtonStyle,
+                  { opacity: isTranscribing || (!isRecording && hasRecorded) ? 0.5 : 1 },
+                ]}
               >
                 <LinearGradient
                   colors={
@@ -334,7 +412,7 @@ export default function RecordScreen() {
           </Animated.View>
 
           {/* Secondary Controls */}
-          {hasRecorded && (
+          {hasRecorded && !isTranscribing && (
             <Animated.View
               entering={FadeInDown.delay(500).springify()}
               className="flex-row items-center mt-12 gap-6"
@@ -354,14 +432,10 @@ export default function RecordScreen() {
               {!isRecording && hasRecorded && (
                 <>
                   <Pressable
-                    onPress={() => {
-                      setDuration(0);
-                      setHasRecorded(false);
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    }}
+                    onPress={handleReRecord}
                     className="w-14 h-14 rounded-full bg-stone-200 items-center justify-center"
                   >
-                    <X size={24} color="#78716C" strokeWidth={2} />
+                    <RotateCcw size={24} color="#78716C" strokeWidth={2} />
                   </Pressable>
                   <Pressable
                     onPress={saveRecording}
@@ -382,7 +456,9 @@ export default function RecordScreen() {
             style={{ fontFamily: 'DMSans_400Regular' }}
             className="text-stone-400 text-xs text-center"
           >
-            Your recordings stay on your device
+            {isTranscribing
+              ? 'This usually takes a few seconds'
+              : 'Your recordings stay on your device'}
           </Text>
         </Animated.View>
       </SafeAreaView>
