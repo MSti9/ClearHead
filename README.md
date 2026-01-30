@@ -1,6 +1,8 @@
-# Mindful Journal
+# Clearhead
 
-A gentle journaling app for people who want to journal but struggle to do it consistently. No pressure, no guilt—just a calm space to collect your thoughts whenever you need it.
+A gentle journaling app for people who want to journal but struggle to do it consistently. No pressure, no guilt—just a calm space to clear your head whenever you need it.
+
+**clearhead.app**
 
 ## Features
 

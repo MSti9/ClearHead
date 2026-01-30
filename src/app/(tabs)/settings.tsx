@@ -269,11 +269,11 @@ export default function SettingsScreen() {
                 style={{ fontFamily: 'CormorantGaramond_500Medium' }}
                 className="text-stone-600 text-lg mb-2"
               >
-                A space for your thoughts
+                Clearhead
               </Text>
               <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm leading-5">
-                This journal is designed for people who want to journal but have not done it consistently.
-                No pressure, no streaks to maintain. Just a calm space to collect your thoughts whenever
+                A journaling app for people who want to journal but have not done it consistently.
+                No pressure, no streaks to maintain. Just a calm space to clear your head whenever
                 you need it.
               </Text>
             </View>
