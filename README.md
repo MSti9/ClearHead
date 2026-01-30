@@ -42,6 +42,12 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Visual waveform feedback while recording
 - Pause and resume support
 - Auto-transcription using OpenAI Whisper
+- **AI-Powered Formatting**: Transcriptions are automatically formatted for readability
+  - Breaks text into natural paragraphs based on topic changes
+  - Adds proper spacing between paragraphs
+  - Fixes grammar and run-on sentences
+  - Makes entries pleasant and easy to read
+  - Preserves original meaning and conversational tone
 - **Coach Follow-Up Questions**: After saving a voice entry, the app may ask a gentle follow-up question
   - Text-to-speech reads the question aloud (natural, conversational voice)
   - Rule-based question generation detects themes (stress, work, family, emotions)

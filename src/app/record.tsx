@@ -21,6 +21,7 @@ import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
 import { ttsService } from '@/lib/ttsService';
 import { generateFollowUpQuestion, shouldShowFollowUp } from '@/lib/coachFollowUp';
+import { formatTranscription } from '@/lib/formatTranscription';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -252,22 +253,25 @@ export default function RecordScreen() {
     setIsTranscribing(true);
 
     try {
-      const transcriptionText = await transcribeAudio(recordingUri);
-      setTranscription(transcriptionText);
+      const rawTranscription = await transcribeAudio(recordingUri);
+
+      // Format the transcription for better readability
+      const formattedText = await formatTranscription(rawTranscription);
+      setTranscription(formattedText);
 
       if (isFollowUpResponse && savedEntryId) {
         // Append to existing entry
         const existingEntry = entries.find((e) => e.id === savedEntryId);
         if (existingEntry) {
           updateEntry(savedEntryId, {
-            content: `${existingEntry.content}\n\n---\n\n**Follow-up:**\n${transcriptionText}`,
+            content: `${existingEntry.content}\n\n---\n\n**Follow-up:**\n${formattedText}`,
           });
         }
         router.back();
       } else {
         // Create new entry
         const newEntry = addEntry({
-          content: transcriptionText,
+          content: formattedText,
           type: 'voice',
           voiceDuration: duration,
         });
@@ -276,9 +280,9 @@ export default function RecordScreen() {
         const entryId = entries[entries.length - 1]?.id || Date.now().toString();
         setSavedEntryId(entryId);
 
-        // Check if we should show follow-up
+        // Check if we should show follow-up (use raw transcription for analysis)
         if (shouldShowFollowUp(entries.length)) {
-          const question = generateFollowUpQuestion(transcriptionText);
+          const question = generateFollowUpQuestion(rawTranscription);
           if (question) {
             setFollowUpQuestion(question);
             setShowFollowUp(true);
@@ -376,7 +380,7 @@ export default function RecordScreen() {
   }));
 
   const getPromptText = () => {
-    if (isTranscribing) return 'Transcribing...';
+    if (isTranscribing) return 'Processing your words...';
     if (isFollowUpResponse && !hasRecorded) return 'Share more if you\'d like';
     if (isFollowUpResponse && isRecording) return 'I\'m listening...';
     if (!hasRecorded) return 'What is on your mind?';
@@ -385,7 +389,7 @@ export default function RecordScreen() {
   };
 
   const getSubText = () => {
-    if (isTranscribing) return 'Converting your voice to text';
+    if (isTranscribing) return 'Transcribing and formatting for readability';
     if (isFollowUpResponse && !hasRecorded) return 'Tap to respond to the coach';
     if (isFollowUpResponse && isRecording) return 'Your response will be added to your entry';
     if (!hasRecorded) return 'Tap to start recording';
