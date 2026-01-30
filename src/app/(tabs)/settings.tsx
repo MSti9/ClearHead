@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield } from 'lucide-react-native';
@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { exportAsText, exportYearInReview } from '@/lib/exportJournal';
+import { scheduleReminders, requestNotificationPermissions, areNotificationsEnabled } from '@/lib/notifications';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -88,8 +89,33 @@ export default function SettingsScreen() {
   const entries = useJournalStore((s) => s.entries);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [notificationsAllowed, setNotificationsAllowed] = useState<boolean | null>(null);
 
-  const handleToggleReminders = (value: boolean) => {
+  // Check notification permissions on mount
+  useEffect(() => {
+    areNotificationsEnabled().then(setNotificationsAllowed);
+  }, []);
+
+  // Schedule/cancel reminders when settings change
+  useEffect(() => {
+    scheduleReminders(reminderSettings);
+  }, [reminderSettings]);
+
+  const handleToggleReminders = async (value: boolean) => {
+    if (value) {
+      // Request permission when enabling
+      const granted = await requestNotificationPermissions();
+      setNotificationsAllowed(granted);
+
+      if (!granted) {
+        Alert.alert(
+          'Notifications Disabled',
+          'Please enable notifications in your device settings to receive journal reminders.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+    }
     setReminderSettings({ enabled: value });
   };
 

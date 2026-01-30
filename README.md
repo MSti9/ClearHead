@@ -74,8 +74,9 @@ A gentle journaling app for people who want to journal but struggle to do it con
 ### Reminder Settings
 - Customizable reminder time
 - Select active days of the week
-- Gentle nudge mode for softer reminders
-- Enable/disable reminders easily
+- Gentle nudge mode with prompts (softer reminders)
+- Local push notifications (requires permission)
+- Automatically schedules/cancels based on settings
 
 ## Design
 
