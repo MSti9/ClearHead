@@ -270,38 +270,11 @@ export default function NewEntryScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Format Toolbar */}
-        {showFormatBar && (
-          <Animated.View
-            entering={FadeInDown.duration(200)}
-            className="px-6 pb-3"
-          >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12 }}
-              style={{ flexGrow: 0 }}
-            >
-              <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
-              <FormatButton icon={Italic} onPress={() => handleFormat('italic')} label="Italic" />
-              <FormatButton icon={Heading2} onPress={() => handleFormat('header')} label="Heading" />
-              <FormatButton icon={Quote} onPress={() => handleFormat('quote')} label="Quote" />
-              <FormatButton icon={List} onPress={() => handleFormat('list')} label="Bullet list" />
-              <FormatButton icon={ListOrdered} onPress={() => handleFormat('numbered')} label="Numbered list" />
-            </ScrollView>
-            <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-400 text-xs mt-2"
-            >
-              {'Tip: Use **bold**, *italic*, ## headers, > quotes, - lists'}
-            </Text>
-          </Animated.View>
-        )}
-
         <KeyboardAwareScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={showFormatBar ? 80 : 0}
         >
           <View className="flex-1 px-6">
             {/* Prompt (if provided) */}
@@ -373,17 +346,42 @@ export default function NewEntryScreen() {
         </KeyboardAwareScrollView>
 
         {/* Bottom hint */}
-        <Animated.View
-          entering={FadeInUp.delay(300).springify()}
-          className="px-6 pb-4"
-        >
-          <Text
-            style={{ fontFamily: 'DMSans_400Regular' }}
-            className="text-stone-400 text-xs text-center"
+        {!showFormatBar && (
+          <Animated.View
+            entering={FadeInUp.delay(300).springify()}
+            className="px-6 pb-4"
           >
-            Write freely. No one else will see this.
-          </Text>
-        </Animated.View>
+            <Text
+              style={{ fontFamily: 'DMSans_400Regular' }}
+              className="text-stone-400 text-xs text-center"
+            >
+              Write freely. No one else will see this.
+            </Text>
+          </Animated.View>
+        )}
+
+        {/* Format Toolbar - Bottom */}
+        {showFormatBar && (
+          <Animated.View
+            entering={FadeInUp.duration(200)}
+            className="px-6 pb-4 pt-3 border-t border-stone-200"
+            style={{ backgroundColor: '#FAF8F5' }}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12 }}
+              style={{ flexGrow: 0 }}
+            >
+              <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
+              <FormatButton icon={Italic} onPress={() => handleFormat('italic')} label="Italic" />
+              <FormatButton icon={Heading2} onPress={() => handleFormat('header')} label="Heading" />
+              <FormatButton icon={Quote} onPress={() => handleFormat('quote')} label="Quote" />
+              <FormatButton icon={List} onPress={() => handleFormat('list')} label="Bullet list" />
+              <FormatButton icon={ListOrdered} onPress={() => handleFormat('numbered')} label="Numbered list" />
+            </ScrollView>
+          </Animated.View>
+        )}
       </SafeAreaView>
 
       {/* Discard Confirmation Modal */}

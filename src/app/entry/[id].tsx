@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, ScrollView, Modal } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Trash2, Edit3, Check, X, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { format } from 'date-fns';
 import { MarkdownText, insertFormatting } from '@/components/MarkdownText';
@@ -22,6 +22,7 @@ export default function EntryDetailScreen() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const prevContentRef = useRef(editedContent);
 
   if (!entry) {
     return (
@@ -58,12 +59,146 @@ export default function EntryDetailScreen() {
       format
     );
     setEditedContent(newText);
+    prevContentRef.current = newText;
 
     setTimeout(() => {
       inputRef.current?.setNativeProps({
         selection: { start: newCursorPosition, end: newCursorPosition },
       });
     }, 50);
+  };
+
+  // Handle auto-continuing lists on Enter
+  const handleTextChange = (newText: string) => {
+    const prevText = prevContentRef.current;
+
+    // Check if user just pressed Enter (newline was added)
+    if (newText.length === prevText.length + 1 && newText.endsWith('\n') && !prevText.endsWith('\n')) {
+      // Find the current line before the new Enter
+      const textBeforeNewline = newText.slice(0, -1);
+      const lastNewlineIndex = textBeforeNewline.lastIndexOf('\n');
+      const currentLine = textBeforeNewline.slice(lastNewlineIndex + 1);
+
+      // Check if previous line was a bullet list item
+      if (currentLine.startsWith('- ')) {
+        const listContent = currentLine.slice(2).trim();
+        if (listContent === '') {
+          // Empty bullet - remove it and stop the list
+          setEditedContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
+          prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
+          return;
+        }
+        // Continue the bullet list
+        setEditedContent(newText + '- ');
+        prevContentRef.current = newText + '- ';
+        setTimeout(() => {
+          inputRef.current?.setNativeProps({
+            selection: { start: newText.length + 2, end: newText.length + 2 },
+          });
+        }, 10);
+        return;
+      }
+
+      // Check if previous line was a numbered list item
+      const numberedMatch = currentLine.match(/^(\d+)\.\s/);
+      if (numberedMatch) {
+        const listContent = currentLine.slice(numberedMatch[0].length).trim();
+        if (listContent === '') {
+          // Empty numbered item - remove it and stop the list
+          setEditedContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
+          prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
+          return;
+        }
+        // Continue the numbered list with next number
+        const nextNum = parseInt(numberedMatch[1], 10) + 1;
+        setEditedContent(newText + `${nextNum}. `);
+        prevContentRef.current = newText + `${nextNum}. `;
+        setTimeout(() => {
+          const newLength = newText.length + `${nextNum}. `.length;
+          inputRef.current?.setNativeProps({
+            selection: { start: newLength, end: newLength },
+          });
+        }, 10);
+        return;
+      }
+    }
+
+    // Also check for Enter pressed in the middle of text
+    if (newText.length > prevText.length) {
+      const diff = newText.length - prevText.length;
+      for (let i = 0; i < prevText.length; i++) {
+        if (newText[i] !== prevText[i]) {
+          if (newText[i] === '\n' && diff === 1) {
+            const textBeforeCursor = newText.slice(0, i);
+            const lastNewlineBeforeCursor = textBeforeCursor.lastIndexOf('\n');
+            const lineBeforeCursor = textBeforeCursor.slice(lastNewlineBeforeCursor + 1);
+
+            // Check for bullet
+            if (lineBeforeCursor.startsWith('- ')) {
+              const listContent = lineBeforeCursor.slice(2).trim();
+              if (listContent === '') {
+                const before = textBeforeCursor.slice(0, lastNewlineBeforeCursor + 1);
+                const after = newText.slice(i + 1);
+                setEditedContent(before + after);
+                prevContentRef.current = before + after;
+                setTimeout(() => {
+                  inputRef.current?.setNativeProps({
+                    selection: { start: before.length, end: before.length },
+                  });
+                }, 10);
+                return;
+              }
+              const before = newText.slice(0, i + 1);
+              const after = newText.slice(i + 1);
+              const newContent = before + '- ' + after;
+              setEditedContent(newContent);
+              prevContentRef.current = newContent;
+              setTimeout(() => {
+                inputRef.current?.setNativeProps({
+                  selection: { start: i + 3, end: i + 3 },
+                });
+              }, 10);
+              return;
+            }
+
+            // Check for numbered list
+            const numMatch = lineBeforeCursor.match(/^(\d+)\.\s/);
+            if (numMatch) {
+              const listContent = lineBeforeCursor.slice(numMatch[0].length).trim();
+              if (listContent === '') {
+                const before = textBeforeCursor.slice(0, lastNewlineBeforeCursor + 1);
+                const after = newText.slice(i + 1);
+                setEditedContent(before + after);
+                prevContentRef.current = before + after;
+                setTimeout(() => {
+                  inputRef.current?.setNativeProps({
+                    selection: { start: before.length, end: before.length },
+                  });
+                }, 10);
+                return;
+              }
+              const nextNum = parseInt(numMatch[1], 10) + 1;
+              const before = newText.slice(0, i + 1);
+              const after = newText.slice(i + 1);
+              const prefix = `${nextNum}. `;
+              const newContent = before + prefix + after;
+              setEditedContent(newContent);
+              prevContentRef.current = newContent;
+              setTimeout(() => {
+                inputRef.current?.setNativeProps({
+                  selection: { start: i + 1 + prefix.length, end: i + 1 + prefix.length },
+                });
+              }, 10);
+              return;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    setEditedContent(newText);
+    prevContentRef.current = newText;
   };
 
   const handleSaveEdit = () => {
@@ -209,77 +344,25 @@ export default function EntryDetailScreen() {
           {/* Content */}
           <Animated.View entering={FadeInDown.delay(250).springify()}>
             {isEditing ? (
-              <View>
-                {/* Format Toolbar */}
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingBottom: 12 }}
-                  style={{ flexGrow: 0 }}
-                >
-                  <Pressable
-                    onPress={() => handleFormat('bold')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <Bold size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleFormat('italic')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <Italic size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleFormat('header')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <Heading2 size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleFormat('quote')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <Quote size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleFormat('list')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <List size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleFormat('numbered')}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
-                  >
-                    <ListOrdered size={18} color="#78716C" strokeWidth={2} />
-                  </Pressable>
-                </ScrollView>
-                <TextInput
-                  ref={inputRef}
-                  value={editedContent}
-                  onChangeText={setEditedContent}
-                  onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
-                  multiline
-                  textAlignVertical="top"
-                  autoFocus
-                  style={{
-                    fontFamily: 'DMSans_400Regular',
-                    fontSize: 16,
-                    lineHeight: 26,
-                    color: '#44403C',
-                    minHeight: 200,
-                    backgroundColor: 'white',
-                    borderRadius: 16,
-                    padding: 16,
-                  }}
-                />
-                <Text
-                  style={{ fontFamily: 'DMSans_400Regular' }}
-                  className="text-stone-400 text-xs mt-2"
-                >
-                  Tip: Use **bold**, *italic*, ## headers, &gt; quotes, - lists
-                </Text>
-              </View>
+              <TextInput
+                ref={inputRef}
+                value={editedContent}
+                onChangeText={handleTextChange}
+                onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                multiline
+                textAlignVertical="top"
+                autoFocus
+                style={{
+                  fontFamily: 'DMSans_400Regular',
+                  fontSize: 16,
+                  lineHeight: 26,
+                  color: '#44403C',
+                  minHeight: 200,
+                  backgroundColor: 'white',
+                  borderRadius: 16,
+                  padding: 16,
+                }}
+              />
             ) : (
               <MarkdownText content={entry.content} />
             )}
@@ -311,6 +394,59 @@ export default function EntryDetailScreen() {
             </Animated.View>
           )}
         </ScrollView>
+
+        {/* Format Toolbar - Bottom (when editing) */}
+        {isEditing && (
+          <Animated.View
+            entering={FadeInUp.duration(200)}
+            className="px-6 pb-4 pt-3 border-t border-stone-200"
+            style={{ backgroundColor: '#FAF8F5' }}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12 }}
+              style={{ flexGrow: 0 }}
+            >
+              <Pressable
+                onPress={() => handleFormat('bold')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <Bold size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleFormat('italic')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <Italic size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleFormat('header')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <Heading2 size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleFormat('quote')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <Quote size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleFormat('list')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <List size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+              <Pressable
+                onPress={() => handleFormat('numbered')}
+                className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+              >
+                <ListOrdered size={22} color="#78716C" strokeWidth={2} />
+              </Pressable>
+            </ScrollView>
+          </Animated.View>
+        )}
 
         {/* Delete Confirmation Modal */}
         <Modal
