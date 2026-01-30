@@ -73,6 +73,13 @@ function RootLayoutNav() {
             presentation: 'fullScreenModal',
           }}
         />
+        <Stack.Screen
+          name="entries"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );

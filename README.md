@@ -11,7 +11,15 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Breathing orb animation for a calming presence
 - Quick access to voice recording and text journaling
 - Browse prompts when you do not know where to start
-- View recent journal entries
+- View recent journal entries (5 most recent with "View all" link)
+
+### AI-Powered Patterns & Insights
+- After 10+ entries, AI analyzes your journaling patterns
+- Identifies recurring themes (work stress, relationships, health, etc.)
+- Notices emotional patterns (what makes you happy, stressed, peaceful)
+- Provides warm, supportive observations to help you understand yourself
+- Insights are cached for 24 hours to minimize API usage
+- Teaser message shows progress toward unlocking insights
 
 ### Voice Recording
 - Tap to record your thoughts

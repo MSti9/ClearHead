@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mic, PenLine, Sparkles, ChevronRight } from 'lucide-react-native';
+import { Mic, PenLine, Sparkles, ChevronRight, Briefcase, Heart, Sun, Cloud, Users, TrendingUp, Moon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInDown,
@@ -15,6 +15,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import { analyzePatterns, type JournalInsight } from '@/lib/analyzePatterns';
 import { format, isToday, isYesterday } from 'date-fns';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -229,13 +230,93 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
   );
 }
 
+const insightIcons = {
+  Briefcase: Briefcase,
+  Heart: Heart,
+  Sun: Sun,
+  Cloud: Cloud,
+  Users: Users,
+  Sparkles: Sparkles,
+  TrendingUp: TrendingUp,
+  Moon: Moon,
+};
+
+const insightColors: Record<string, { bg: string; icon: string }> = {
+  Briefcase: { bg: '#E8EDE6', icon: '#5C6B56' },
+  Heart: { bg: '#FCE7E7', icon: '#C4775A' },
+  Sun: { bg: '#FEF3C7', icon: '#D97706' },
+  Cloud: { bg: '#E5E7EB', icon: '#6B7280' },
+  Users: { bg: '#DBEAFE', icon: '#3B82F6' },
+  Sparkles: { bg: '#F3E8FF', icon: '#9333EA' },
+  TrendingUp: { bg: '#D1FAE5', icon: '#059669' },
+  Moon: { bg: '#E0E7FF', icon: '#4F46E5' },
+};
+
+function InsightCard({ insight, index }: { insight: JournalInsight; index: number }) {
+  const IconComponent = insightIcons[insight.icon] || Sparkles;
+  const colors = insightColors[insight.icon] || insightColors.Sparkles;
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(500 + index * 100).springify()}
+      className="bg-white rounded-2xl p-4 mb-3"
+      style={{
+        shadowColor: '#2D2A26',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 2,
+      }}
+    >
+      <View className="flex-row items-start">
+        <View
+          className="w-10 h-10 rounded-full items-center justify-center mr-3"
+          style={{ backgroundColor: colors.bg }}
+        >
+          <IconComponent size={18} color={colors.icon} strokeWidth={2} />
+        </View>
+        <View className="flex-1">
+          <Text
+            style={{ fontFamily: 'DMSans_600SemiBold' }}
+            className="text-stone-800 text-sm mb-1"
+          >
+            {insight.title}
+          </Text>
+          <Text
+            style={{ fontFamily: 'DMSans_400Regular' }}
+            className="text-stone-500 text-sm leading-5"
+          >
+            {insight.description}
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const entries = useJournalStore((s) => s.entries);
   const streak = useJournalStore((s) => s.streak);
+  const [insights, setInsights] = useState<JournalInsight[]>([]);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   const recentEntries = entries.slice(0, 5);
   const hasEntries = entries.length > 0;
+  const hasMoreEntries = entries.length > 5;
+
+  // Analyze patterns when entries change
+  useEffect(() => {
+    if (entries.length >= 10) {
+      setLoadingInsights(true);
+      analyzePatterns(entries)
+        .then(setInsights)
+        .catch(() => setInsights([]))
+        .finally(() => setLoadingInsights(false));
+    } else {
+      setInsights([]);
+    }
+  }, [entries.length]);
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
@@ -365,7 +446,19 @@ export default function HomeScreen() {
               >
                 Recent entries
               </Text>
-              {hasEntries && (
+              {hasMoreEntries && (
+                <Pressable onPress={() => router.push('/entries')}>
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-sm"
+                    selectable={false}
+                  >
+                    <Text style={{ color: '#C4775A' }}>View all</Text>
+                    <Text style={{ color: '#9C9690' }}> · {entries.length}</Text>
+                  </Text>
+                </Pressable>
+              )}
+              {hasEntries && !hasMoreEntries && (
                 <Text
                   style={{ fontFamily: 'DMSans_500Medium' }}
                   className="text-stone-400 text-sm"
@@ -409,6 +502,79 @@ export default function HomeScreen() {
               </Animated.View>
             )}
           </View>
+
+          {/* Insights Section */}
+          {insights.length > 0 && (
+            <View className="px-6 mt-6">
+              <Animated.View
+                entering={FadeInDown.delay(450).springify()}
+                className="flex-row items-center mb-3"
+              >
+                <Text
+                  style={{ fontFamily: 'DMSans_600SemiBold' }}
+                  className="text-stone-800 text-lg"
+                >
+                  Patterns & Insights
+                </Text>
+              </Animated.View>
+
+              <Animated.View
+                entering={FadeInDown.delay(480).springify()}
+                className="bg-amber-50/50 border border-amber-100 rounded-xl px-4 py-3 mb-4"
+              >
+                <Text
+                  style={{ fontFamily: 'DMSans_400Regular' }}
+                  className="text-amber-700 text-xs leading-4"
+                >
+                  Based on your recent entries, here's what we've noticed. These insights help you see patterns you might not notice yourself.
+                </Text>
+              </Animated.View>
+
+              {insights.map((insight, index) => (
+                <InsightCard key={insight.id} insight={insight} index={index} />
+              ))}
+            </View>
+          )}
+
+          {/* Loading insights indicator */}
+          {loadingInsights && entries.length >= 10 && (
+            <View className="px-6 mt-6">
+              <View className="bg-stone-100 rounded-2xl p-4 items-center">
+                <Text
+                  style={{ fontFamily: 'DMSans_400Regular' }}
+                  className="text-stone-400 text-sm"
+                >
+                  Analyzing your journal patterns...
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Teaser for insights */}
+          {entries.length >= 5 && entries.length < 10 && !loadingInsights && (
+            <View className="px-6 mt-6">
+              <Animated.View
+                entering={FadeInDown.delay(450).springify()}
+                className="bg-stone-100 rounded-2xl p-4"
+              >
+                <View className="flex-row items-center mb-2">
+                  <TrendingUp size={16} color="#9C9690" strokeWidth={2} />
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-stone-600 text-sm ml-2"
+                  >
+                    Insights coming soon
+                  </Text>
+                </View>
+                <Text
+                  style={{ fontFamily: 'DMSans_400Regular' }}
+                  className="text-stone-400 text-xs leading-4"
+                >
+                  After {10 - entries.length} more {10 - entries.length === 1 ? 'entry' : 'entries'}, we'll start identifying patterns in your journaling to help you understand yourself better.
+                </Text>
+              </Animated.View>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
