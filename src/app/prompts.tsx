@@ -15,7 +15,6 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { promptCategories, getRandomPrompt, type PromptCategory } from '@/lib/prompts';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -51,10 +50,7 @@ function CategoryCard({ category, index, onPress }: CategoryCardProps) {
   return (
     <AnimatedPressable
       entering={FadeInDown.delay(150 + index * 50).springify()}
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress();
-      }}
+      onPress={onPress}
       className="rounded-2xl p-4 mb-3"
       style={{ backgroundColor: colors.bg }}
     >
@@ -125,10 +121,7 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
           </View>
         </LinearGradient>
         <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onBack();
-          }}
+          onPress={onBack}
           className="flex-row items-center"
         >
           <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
@@ -142,10 +135,7 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
         <AnimatedPressable
           key={index}
           entering={FadeInUp.delay(200 + index * 50).springify()}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onSelectPrompt(prompt);
-          }}
+          onPress={() => onSelectPrompt(prompt)}
           className="bg-white rounded-2xl p-4 mb-3"
           style={{
             shadowColor: '#2D2A26',
@@ -177,13 +167,10 @@ export default function PromptsScreen() {
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | null>(null);
 
   const handleClose = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
   };
 
   const handleSelectPrompt = (prompt: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Replace the prompts modal with new-entry so back goes to home
     router.replace({
       pathname: '/new-entry',
       params: { prompt },
@@ -191,9 +178,7 @@ export default function PromptsScreen() {
   };
 
   const handleRandomPrompt = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const { prompt } = getRandomPrompt();
-    // Replace the prompts modal with new-entry so back goes to home
     router.replace({
       pathname: '/new-entry',
       params: { prompt },

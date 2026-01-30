@@ -14,7 +14,6 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '@/stores/journalStore';
 import { format, isToday, isYesterday } from 'date-fns';
 
@@ -110,7 +109,6 @@ interface QuickActionProps {
 
 function QuickAction({ icon, label, sublabel, onPress, delay, colors }: QuickActionProps) {
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
 
@@ -168,7 +166,6 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
   const router = useRouter();
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/entry/${entry.id}`);
   };
 
@@ -317,7 +314,6 @@ export default function HomeScreen() {
             <AnimatedPressable
               entering={FadeInUp.delay(400).springify()}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push('/prompts');
               }}
               className="mt-3 rounded-2xl overflow-hidden"

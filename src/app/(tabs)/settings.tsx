@@ -3,11 +3,8 @@ import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Clock, Calendar, ChevronRight, Trash2, Info } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '@/stores/journalStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -59,16 +56,9 @@ function SettingsRow({
   onPress?: () => void;
   isLast?: boolean;
 }) {
-  const handlePress = () => {
-    if (onPress) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onPress();
-    }
-  };
-
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={onPress}
       disabled={!onPress}
       className="flex-row items-center px-4 py-3.5"
       style={!isLast ? { borderBottomWidth: 1, borderBottomColor: '#F5F2EE' } : undefined}
@@ -98,17 +88,14 @@ export default function SettingsScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleToggleReminders = (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setReminderSettings({ enabled: value });
   };
 
   const handleToggleGentleNudge = (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setReminderSettings({ gentleNudge: value });
   };
 
   const handleDayToggle = (dayIndex: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newDays = reminderSettings.days.includes(dayIndex)
       ? reminderSettings.days.filter((d) => d !== dayIndex)
       : [...reminderSettings.days, dayIndex].sort();
@@ -151,7 +138,6 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: () => {
             // Clear entries logic would go here
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           },
         },
       ]

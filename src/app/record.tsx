@@ -16,7 +16,6 @@ import Animated, {
   cancelAnimation,
   withSpring,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
 
@@ -191,7 +190,6 @@ export default function RecordScreen() {
       setIsRecording(true);
       setHasRecorded(true);
       setRecordingUri(null);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
       timerRef.current = setInterval(() => {
         setDuration((d) => d + 1);
@@ -215,7 +213,6 @@ export default function RecordScreen() {
         }
       }
       setIsPaused(!isPaused);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
@@ -229,7 +226,6 @@ export default function RecordScreen() {
       setRecordingUri(uri);
       setIsRecording(false);
       setIsPaused(false);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   };
 
@@ -237,12 +233,10 @@ export default function RecordScreen() {
     if (!recordingUri) return;
 
     setIsTranscribing(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     try {
       const transcription = await transcribeAudio(recordingUri);
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       addEntry({
         content: transcription,
         type: 'voice',
@@ -251,7 +245,6 @@ export default function RecordScreen() {
       router.back();
     } catch (error) {
       console.error('Transcription failed:', error);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       // Save without transcription as fallback
       addEntry({
         content: `Voice note (${formatDuration(duration)}) - Transcription unavailable. Please check your connection and try again.`,
@@ -275,7 +268,6 @@ export default function RecordScreen() {
   };
 
   const handleClose = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
   };
 
@@ -284,7 +276,6 @@ export default function RecordScreen() {
     setHasRecorded(false);
     setRecordingUri(null);
     recordingRef.current = null;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const mainButtonStyle = useAnimatedStyle(() => ({

@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Trash2, Edit3, Check, X } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '@/stores/journalStore';
 import { format } from 'date-fns';
 
@@ -30,7 +29,6 @@ export default function EntryDetailScreen() {
   }
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
   };
 
@@ -44,7 +42,6 @@ export default function EntryDetailScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             deleteEntry(entry.id);
             router.back();
           },
@@ -54,19 +51,16 @@ export default function EntryDetailScreen() {
   };
 
   const handleEdit = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsEditing(true);
   };
 
   const handleSaveEdit = () => {
     if (editedContent.trim().length === 0) return;
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     updateEntry(entry.id, { content: editedContent.trim() });
     setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setEditedContent(entry.content);
     setIsEditing(false);
   };

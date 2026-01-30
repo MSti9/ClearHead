@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Check } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 import { useJournalStore } from '@/stores/journalStore';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
@@ -27,7 +26,6 @@ export default function NewEntryScreen() {
   }, []);
 
   const handleClose = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Keyboard.dismiss();
     router.back();
   };
@@ -35,7 +33,6 @@ export default function NewEntryScreen() {
   const handleSave = () => {
     if (!hasContent) return;
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addEntry({
       content: content.trim(),
       type: promptText ? 'prompted' : 'text',
