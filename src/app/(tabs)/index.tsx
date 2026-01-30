@@ -21,11 +21,12 @@ import { format, isToday, isYesterday, differenceInDays, startOfMonth, isSameMon
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function getGreeting(): string {
+function getGreeting(userName?: string | null): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  const name = userName ? `, ${userName}` : '';
+  if (hour < 12) return `Good morning${name}`;
+  if (hour < 17) return `Good afternoon${name}`;
+  return `Good evening${name}`;
 }
 
 function getTimeContext(): string {
@@ -379,6 +380,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const entries = useJournalStore((s) => s.entries);
   const lastEntryDate = useJournalStore((s) => s.lastEntryDate);
+  const userName = useJournalStore((s) => s.userName);
   const [insights, setInsights] = useState<JournalInsight[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
@@ -437,7 +439,7 @@ export default function HomeScreen() {
                 style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
                 className="text-4xl text-stone-800 mb-1"
               >
-                {getGreeting()}
+                {getGreeting(userName)}
               </Text>
               <Text
                 style={{ fontFamily: 'DMSans_400Regular' }}

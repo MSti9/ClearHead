@@ -30,12 +30,14 @@ interface JournalState {
   lastEntryDate: string | null;
   streak: number;
   isLoading: boolean;
+  userName: string | null;
 
   // Actions
   addEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateEntry: (id: string, updates: Partial<JournalEntry>) => void;
   deleteEntry: (id: string) => void;
   setReminderSettings: (settings: Partial<ReminderSettings>) => void;
+  setUserName: (name: string) => void;
   loadFromStorage: () => Promise<void>;
   saveToStorage: () => Promise<void>;
 }
@@ -55,6 +57,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   lastEntryDate: null,
   streak: 0,
   isLoading: true,
+  userName: null,
 
   addEntry: (entry) => {
     const now = new Date().toISOString();
@@ -126,6 +129,11 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     get().saveToStorage();
   },
 
+  setUserName: (name) => {
+    set({ userName: name });
+    get().saveToStorage();
+  },
+
   loadFromStorage: async () => {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEY);
@@ -136,6 +144,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
           reminderSettings: parsed.reminderSettings || defaultReminderSettings,
           lastEntryDate: parsed.lastEntryDate || null,
           streak: parsed.streak || 0,
+          userName: parsed.userName || null,
           isLoading: false,
         });
       } else {
@@ -149,10 +158,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
 
   saveToStorage: async () => {
     try {
-      const { entries, reminderSettings, lastEntryDate, streak } = get();
+      const { entries, reminderSettings, lastEntryDate, streak, userName } = get();
       await AsyncStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ entries, reminderSettings, lastEntryDate, streak })
+        JSON.stringify({ entries, reminderSettings, lastEntryDate, streak, userName })
       );
     } catch (error) {
       console.error('Failed to save journal data:', error);

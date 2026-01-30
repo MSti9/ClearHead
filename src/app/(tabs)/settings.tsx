@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield } from 'lucide-react-native';
+import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield, User, Edit3 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -86,10 +86,14 @@ function SettingsRow({
 export default function SettingsScreen() {
   const reminderSettings = useJournalStore((s) => s.reminderSettings);
   const setReminderSettings = useJournalStore((s) => s.setReminderSettings);
+  const userName = useJournalStore((s) => s.userName);
+  const setUserName = useJournalStore((s) => s.setUserName);
   const entries = useJournalStore((s) => s.entries);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [notificationsAllowed, setNotificationsAllowed] = useState<boolean | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [tempName, setTempName] = useState(userName || '');
 
   // Check notification permissions on mount
   useEffect(() => {
@@ -210,6 +214,16 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleSaveName = () => {
+    setUserName(tempName.trim());
+    setShowNameModal(false);
+  };
+
+  const handleOpenNameModal = () => {
+    setTempName(userName || '');
+    setShowNameModal(true);
+  };
+
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
       <SafeAreaView edges={['top']} className="flex-1">
@@ -230,6 +244,25 @@ export default function SettingsScreen() {
               Customize your journaling experience
             </Text>
           </Animated.View>
+
+          {/* Profile Section */}
+          <SettingsSection title="Profile" delay={75}>
+            <SettingsRow
+              icon={<User size={18} color="#7C8B75" strokeWidth={2} />}
+              label="Your name"
+              sublabel={userName || 'Tap to set your name'}
+              onPress={handleOpenNameModal}
+              rightElement={
+                <View className="flex-row items-center">
+                  <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500 mr-2">
+                    {userName || 'Not set'}
+                  </Text>
+                  <Edit3 size={16} color="#9C9690" strokeWidth={2} />
+                </View>
+              }
+              isLast
+            />
+          </SettingsSection>
 
           {/* Reminders Section */}
           <SettingsSection title="Reminders" delay={100}>
@@ -423,6 +456,90 @@ export default function SettingsScreen() {
             onChange={handleTimeChange}
           />
         )}
+
+        {/* Name Edit Modal */}
+        <Modal
+          visible={showNameModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowNameModal(false)}
+        >
+          <Pressable
+            className="flex-1 bg-black/50 items-center justify-center px-8"
+            onPress={() => setShowNameModal(false)}
+          >
+            <Pressable
+              className="bg-white rounded-3xl p-6 w-full max-w-sm"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="items-center mb-4">
+                <View
+                  className="w-12 h-12 rounded-full items-center justify-center mb-3"
+                  style={{ backgroundColor: '#E8EDE6' }}
+                >
+                  <User size={24} color="#7C8B75" strokeWidth={2} />
+                </View>
+                <Text
+                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                  className="text-stone-800 text-xl text-center"
+                >
+                  What's your name?
+                </Text>
+              </View>
+
+              <Text
+                style={{ fontFamily: 'DMSans_400Regular' }}
+                className="text-stone-500 text-center mb-4"
+              >
+                This will be used in your greetings
+              </Text>
+
+              <TextInput
+                value={tempName}
+                onChangeText={setTempName}
+                placeholder="Enter your name"
+                placeholderTextColor="#9C9690"
+                autoFocus
+                style={{
+                  fontFamily: 'DMSans_400Regular',
+                  fontSize: 16,
+                  color: '#44403C',
+                  backgroundColor: '#FAF8F5',
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 16,
+                }}
+              />
+
+              <View className="gap-3">
+                <Pressable
+                  onPress={handleSaveName}
+                  className="py-3.5 rounded-2xl"
+                  style={{ backgroundColor: '#7C8B75' }}
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-white text-center"
+                  >
+                    Save
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setShowNameModal(false)}
+                  className="py-3.5 rounded-2xl bg-stone-100"
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-stone-700 text-center"
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaView>
     </View>
   );
