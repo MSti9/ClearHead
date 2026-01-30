@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { X, Mic, Square, Check, Pause, Play, RotateCcw } from 'lucide-react-native';
+import { X, Mic, Square, Check, Pause, Play, RotateCcw, Volume2, VolumeX, MessageCircle, SkipForward } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
@@ -15,9 +15,12 @@ import Animated, {
   Easing,
   cancelAnimation,
   withSpring,
+  FadeOut,
 } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
+import { ttsService } from '@/lib/ttsService';
+import { generateFollowUpQuestion, shouldShowFollowUp } from '@/lib/coachFollowUp';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -147,12 +150,24 @@ function WaveformBar({ index, isRecording }: { index: number; isRecording: boole
 export default function RecordScreen() {
   const router = useRouter();
   const addEntry = useJournalStore((s) => s.addEntry);
+  const updateEntry = useJournalStore((s) => s.updateEntry);
+  const entries = useJournalStore((s) => s.entries);
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
   const [hasRecorded, setHasRecorded] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string>('');
+
+  // Coach follow-up states
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [followUpQuestion, setFollowUpQuestion] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [savedEntryId, setSavedEntryId] = useState<string | null>(null);
+  const [isFollowUpResponse, setIsFollowUpResponse] = useState(false);
+
   const recordingRef = useRef<Audio.Recording | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -166,6 +181,8 @@ export default function RecordScreen() {
       if (recordingRef.current) {
         recordingRef.current.stopAndUnloadAsync();
       }
+      // Stop any ongoing speech
+      ttsService.stop();
     };
   }, []);
 
@@ -235,14 +252,56 @@ export default function RecordScreen() {
     setIsTranscribing(true);
 
     try {
-      const transcription = await transcribeAudio(recordingUri);
+      const transcriptionText = await transcribeAudio(recordingUri);
+      setTranscription(transcriptionText);
 
-      addEntry({
-        content: transcription,
-        type: 'voice',
-        voiceDuration: duration,
-      });
-      router.back();
+      if (isFollowUpResponse && savedEntryId) {
+        // Append to existing entry
+        const existingEntry = entries.find((e) => e.id === savedEntryId);
+        if (existingEntry) {
+          updateEntry(savedEntryId, {
+            content: `${existingEntry.content}\n\n---\n\n**Follow-up:**\n${transcriptionText}`,
+          });
+        }
+        router.back();
+      } else {
+        // Create new entry
+        const newEntry = addEntry({
+          content: transcriptionText,
+          type: 'voice',
+          voiceDuration: duration,
+        });
+
+        // Store the entry ID for potential follow-up
+        const entryId = entries[entries.length - 1]?.id || Date.now().toString();
+        setSavedEntryId(entryId);
+
+        // Check if we should show follow-up
+        if (shouldShowFollowUp(entries.length)) {
+          const question = generateFollowUpQuestion(transcriptionText);
+          if (question) {
+            setFollowUpQuestion(question);
+            setShowFollowUp(true);
+
+            // Speak the follow-up question
+            setIsSpeaking(true);
+            await ttsService.speak(question, {
+              rate: 0.53,
+              onDone: () => {
+                setIsSpeaking(false);
+              },
+              onError: (error) => {
+                console.error('TTS Error:', error);
+                setIsSpeaking(false);
+              },
+            });
+          } else {
+            router.back();
+          }
+        } else {
+          router.back();
+        }
+      }
     } catch (error) {
       console.error('Transcription failed:', error);
       // Save without transcription as fallback
@@ -276,6 +335,40 @@ export default function RecordScreen() {
     setHasRecorded(false);
     setRecordingUri(null);
     recordingRef.current = null;
+    setShowFollowUp(false);
+    setFollowUpQuestion(null);
+    setIsFollowUpResponse(false);
+    ttsService.stop();
+  };
+
+  const handleSkipFollowUp = async () => {
+    await ttsService.stop();
+    setShowFollowUp(false);
+    router.back();
+  };
+
+  const handleRespondToFollowUp = async () => {
+    await ttsService.stop();
+    setIsFollowUpResponse(true);
+    setShowFollowUp(false);
+    setHasRecorded(false);
+    setDuration(0);
+    setRecordingUri(null);
+    // User can now record their response
+  };
+
+  const handleToggleSpeech = async () => {
+    if (isSpeaking) {
+      await ttsService.stop();
+      setIsSpeaking(false);
+    } else if (followUpQuestion) {
+      setIsSpeaking(true);
+      await ttsService.speak(followUpQuestion, {
+        rate: 0.53,
+        onDone: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
+    }
   };
 
   const mainButtonStyle = useAnimatedStyle(() => ({
@@ -284,6 +377,8 @@ export default function RecordScreen() {
 
   const getPromptText = () => {
     if (isTranscribing) return 'Transcribing...';
+    if (isFollowUpResponse && !hasRecorded) return 'Share more if you\'d like';
+    if (isFollowUpResponse && isRecording) return 'I\'m listening...';
     if (!hasRecorded) return 'What is on your mind?';
     if (isRecording) return 'Take your time...';
     return 'Ready to save?';
@@ -291,6 +386,8 @@ export default function RecordScreen() {
 
   const getSubText = () => {
     if (isTranscribing) return 'Converting your voice to text';
+    if (isFollowUpResponse && !hasRecorded) return 'Tap to respond to the coach';
+    if (isFollowUpResponse && isRecording) return 'Your response will be added to your entry';
     if (!hasRecorded) return 'Tap to start recording';
     if (isRecording) return 'Speak freely. No one else will hear this.';
     return 'Your words will be transcribed';
@@ -442,16 +539,130 @@ export default function RecordScreen() {
         </View>
 
         {/* Bottom hint */}
-        <Animated.View entering={FadeInDown.delay(600).springify()} className="px-6 pb-6">
-          <Text
-            style={{ fontFamily: 'DMSans_400Regular' }}
-            className="text-stone-400 text-xs text-center"
+        {!showFollowUp && (
+          <Animated.View entering={FadeInDown.delay(600).springify()} className="px-6 pb-6">
+            <Text
+              style={{ fontFamily: 'DMSans_400Regular' }}
+              className="text-stone-400 text-xs text-center"
+            >
+              {isTranscribing
+                ? 'This usually takes a few seconds'
+                : isFollowUpResponse
+                ? 'Your response will be added to your entry'
+                : 'Your recordings stay on your device'}
+            </Text>
+          </Animated.View>
+        )}
+
+        {/* Coach Follow-Up Modal */}
+        {showFollowUp && followUpQuestion && (
+          <Animated.View
+            entering={FadeIn.duration(300)}
+            exiting={FadeOut.duration(200)}
+            className="absolute inset-0 bg-black/40 items-center justify-center px-8"
           >
-            {isTranscribing
-              ? 'This usually takes a few seconds'
-              : 'Your recordings stay on your device'}
-          </Text>
-        </Animated.View>
+            <Animated.View
+              entering={FadeInDown.delay(100).springify()}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm"
+            >
+              {/* Coach Icon */}
+              <View className="items-center mb-4">
+                <View
+                  className="w-16 h-16 rounded-full items-center justify-center mb-3"
+                  style={{ backgroundColor: '#E8EDE6' }}
+                >
+                  <MessageCircle size={32} color="#7C8B75" strokeWidth={2} />
+                </View>
+                {isSpeaking && (
+                  <Animated.View entering={FadeIn} className="flex-row items-center gap-1 mb-2">
+                    <Volume2 size={16} color="#7C8B75" strokeWidth={2} />
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium', color: '#7C8B75' }}
+                      className="text-sm"
+                    >
+                      Coach is speaking...
+                    </Text>
+                  </Animated.View>
+                )}
+                <Text
+                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                  className="text-stone-800 text-xl text-center"
+                >
+                  Before you go...
+                </Text>
+              </View>
+
+              {/* Follow-up Question */}
+              <Text
+                style={{ fontFamily: 'DMSans_400Regular' }}
+                className="text-stone-600 text-center text-base leading-6 mb-6"
+              >
+                {followUpQuestion}
+              </Text>
+
+              {/* Action Buttons */}
+              <View className="gap-3">
+                {/* Respond Button */}
+                <Pressable
+                  onPress={handleRespondToFollowUp}
+                  className="py-3.5 rounded-2xl flex-row items-center justify-center gap-2"
+                  style={{ backgroundColor: '#7C8B75' }}
+                >
+                  <Mic size={18} color="white" strokeWidth={2} />
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-white text-center"
+                  >
+                    Respond
+                  </Text>
+                </Pressable>
+
+                {/* Control Buttons Row */}
+                <View className="flex-row gap-3">
+                  {/* Play/Pause Speech */}
+                  <Pressable
+                    onPress={handleToggleSpeech}
+                    className="flex-1 py-3 rounded-2xl bg-stone-100 flex-row items-center justify-center gap-2"
+                  >
+                    {isSpeaking ? (
+                      <VolumeX size={16} color="#78716C" strokeWidth={2} />
+                    ) : (
+                      <Volume2 size={16} color="#78716C" strokeWidth={2} />
+                    )}
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium' }}
+                      className="text-stone-700"
+                    >
+                      {isSpeaking ? 'Stop' : 'Replay'}
+                    </Text>
+                  </Pressable>
+
+                  {/* Skip Button */}
+                  <Pressable
+                    onPress={handleSkipFollowUp}
+                    className="flex-1 py-3 rounded-2xl bg-stone-100 flex-row items-center justify-center gap-2"
+                  >
+                    <SkipForward size={16} color="#78716C" strokeWidth={2} />
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium' }}
+                      className="text-stone-700"
+                    >
+                      Skip
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Privacy Note */}
+              <Text
+                style={{ fontFamily: 'DMSans_400Regular' }}
+                className="text-stone-400 text-xs text-center mt-4"
+              >
+                This is optional. Feel free to skip if you prefer.
+              </Text>
+            </Animated.View>
+          </Animated.View>
+        )}
       </SafeAreaView>
     </View>
   );

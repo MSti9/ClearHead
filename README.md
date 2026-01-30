@@ -41,7 +41,14 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Tap to record your thoughts
 - Visual waveform feedback while recording
 - Pause and resume support
-- Save as voice notes (transcription ready for AI integration)
+- Auto-transcription using OpenAI Whisper
+- **Coach Follow-Up Questions**: After saving a voice entry, the app may ask a gentle follow-up question
+  - Text-to-speech reads the question aloud (natural, conversational voice)
+  - Rule-based question generation detects themes (stress, work, family, emotions)
+  - Option to record a response or skip
+  - Follow-up responses are appended to the original entry
+  - Appears on ~70% of entries (not pushy)
+  - Can replay, stop, or skip the spoken question
 
 ### Prompt Library
 - 6 categories of thoughtful prompts:
