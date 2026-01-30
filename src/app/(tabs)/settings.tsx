@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Clock, Calendar, ChevronRight, Trash2, Info } from 'lucide-react-native';
+import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { exportAsText, exportYearInReview } from '@/lib/exportJournal';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -86,6 +87,7 @@ export default function SettingsScreen() {
   const setReminderSettings = useJournalStore((s) => s.setReminderSettings);
   const entries = useJournalStore((s) => s.entries);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const handleToggleReminders = (value: boolean) => {
     setReminderSettings({ enabled: value });
@@ -125,6 +127,44 @@ export default function SettingsScreen() {
     date.setHours(parseInt(hours, 10));
     date.setMinutes(parseInt(minutes, 10));
     return date;
+  };
+
+  const handleExportEntries = async () => {
+    if (entries.length === 0) {
+      Alert.alert('No Entries', 'You don\'t have any journal entries to export yet.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      await exportAsText(entries);
+    } catch (error) {
+      Alert.alert('Export Failed', 'There was an error exporting your entries. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleYearInReview = async () => {
+    const currentYear = new Date().getFullYear();
+    const yearEntries = entries.filter((e) => new Date(e.createdAt).getFullYear() === currentYear);
+
+    if (yearEntries.length < 5) {
+      Alert.alert(
+        'Not Enough Entries',
+        `You need at least 5 entries from ${currentYear} to generate a year in review. You currently have ${yearEntries.length}.`
+      );
+      return;
+    }
+
+    setExporting(true);
+    try {
+      await exportYearInReview(entries);
+    } catch (error) {
+      Alert.alert('Export Failed', 'There was an error generating your year in review. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleClearData = () => {
@@ -250,12 +290,81 @@ export default function SettingsScreen() {
             )}
           </SettingsSection>
 
+          {/* Export Section */}
+          <SettingsSection title="Export" delay={150}>
+            <SettingsRow
+              icon={<FileText size={18} color="#7C8B75" strokeWidth={2} />}
+              label="Export all entries"
+              sublabel="Save as text file"
+              onPress={handleExportEntries}
+              rightElement={
+                exporting ? (
+                  <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm">
+                    Exporting...
+                  </Text>
+                ) : (
+                  <ChevronRight size={18} color="#9C9690" />
+                )
+              }
+            />
+            <SettingsRow
+              icon={<Sparkles size={18} color="#C49A5A" strokeWidth={2} />}
+              label={`${new Date().getFullYear()} Year in Review`}
+              sublabel="AI-generated summary of your year"
+              onPress={handleYearInReview}
+              isLast
+              rightElement={
+                exporting ? (
+                  <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm">
+                    Generating...
+                  </Text>
+                ) : (
+                  <ChevronRight size={18} color="#9C9690" />
+                )
+              }
+            />
+          </SettingsSection>
+
+          {/* Privacy Section */}
+          <SettingsSection title="Privacy" delay={175}>
+            <View className="px-4 py-4">
+              <View className="flex-row items-start mb-3">
+                <View className="w-9 h-9 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#E8EDE6' }}>
+                  <Shield size={18} color="#5C6B56" strokeWidth={2} />
+                </View>
+                <View className="flex-1">
+                  <Text style={{ fontFamily: 'DMSans_600SemiBold' }} className="text-stone-800 text-base mb-1">
+                    Your entries are private
+                  </Text>
+                  <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm leading-5">
+                    All journal entries are stored locally on your device. Nothing is uploaded to the cloud or shared with anyone.
+                  </Text>
+                </View>
+              </View>
+              <View className="bg-stone-50 rounded-xl p-3 mt-2">
+                <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-500 text-xs leading-4">
+                  AI features (transcription, insights) send data to OpenAI for processing but entries are never stored on their servers.
+                </Text>
+              </View>
+            </View>
+          </SettingsSection>
+
           {/* Data Section */}
           <SettingsSection title="Data" delay={200}>
             <SettingsRow
+              icon={<Download size={18} color="#5A7A8B" strokeWidth={2} />}
+              label="Entries stored"
+              sublabel="All data stays on your device"
+              rightElement={
+                <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
+                  {entries.length}
+                </Text>
+              }
+            />
+            <SettingsRow
               icon={<Trash2 size={18} color="#DC6B6B" strokeWidth={2} />}
               label="Clear all entries"
-              sublabel={`${entries.length} entries stored`}
+              sublabel="Permanently delete everything"
               onPress={handleClearData}
               isLast
               rightElement={<ChevronRight size={18} color="#9C9690" />}

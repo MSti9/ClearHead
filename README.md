@@ -45,6 +45,20 @@ A gentle journaling app for people who want to journal but struggle to do it con
   - Change & Decisions
 - "Surprise me" random prompt feature
 - Prompts are saved with entries for context
+- **Reflection prompts** based on past entries ("2 weeks ago you wrote about X...")
+- Helps create continuity and track progress over time
+
+### Export Options
+- Export all entries as a text file
+- Year in Review - AI-generated summary of your year
+- Stats, themes, and personalized insights
+- Easy sharing via native share sheet
+
+### Privacy & Security
+- All entries stored locally on your device
+- Nothing uploaded to the cloud
+- Clear "your entries are private" messaging
+- Transparent about AI feature data handling
 
 ### Text Journaling
 - Clean, distraction-free writing interface

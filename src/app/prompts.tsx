@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,10 +12,14 @@ import {
   Compass,
   ChevronRight,
   Shuffle,
+  History,
+  Sparkles,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { promptCategories, getRandomPrompt, type PromptCategory } from '@/lib/prompts';
+import { generateReflectionPrompts, type ReflectionPrompt } from '@/lib/reflectionPrompts';
+import { useJournalStore } from '@/stores/journalStore';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -164,7 +168,21 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
 
 export default function PromptsScreen() {
   const router = useRouter();
+  const entries = useJournalStore((s) => s.entries);
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | null>(null);
+  const [reflectionPrompts, setReflectionPrompts] = useState<ReflectionPrompt[]>([]);
+  const [loadingReflections, setLoadingReflections] = useState(false);
+
+  // Load reflection prompts on mount
+  useEffect(() => {
+    if (entries.length >= 3) {
+      setLoadingReflections(true);
+      generateReflectionPrompts(entries)
+        .then(setReflectionPrompts)
+        .catch(() => setReflectionPrompts([]))
+        .finally(() => setLoadingReflections(false));
+    }
+  }, [entries.length]);
 
   const handleClose = () => {
     router.back();
@@ -183,6 +201,10 @@ export default function PromptsScreen() {
       pathname: '/new-entry',
       params: { prompt },
     });
+  };
+
+  const handleViewRelatedEntry = (entryId: string) => {
+    router.push(`/entry/${entryId}`);
   };
 
   return (
@@ -224,6 +246,94 @@ export default function PromptsScreen() {
                   Pick a category or let us surprise you with a random prompt.
                 </Text>
               </Animated.View>
+
+              {/* Reflection Prompts Section */}
+              {reflectionPrompts.length > 0 && (
+                <>
+                  <Animated.Text
+                    entering={FadeInDown.delay(100).springify()}
+                    style={{ fontFamily: 'DMSans_600SemiBold' }}
+                    className="text-stone-400 text-xs uppercase tracking-wider mb-3"
+                  >
+                    Based on your past entries
+                  </Animated.Text>
+
+                  {reflectionPrompts.map((reflection, index) => (
+                    <AnimatedPressable
+                      key={reflection.id}
+                      entering={FadeInDown.delay(120 + index * 50).springify()}
+                      onPress={() => handleSelectPrompt(reflection.prompt)}
+                      className="mb-3"
+                    >
+                      <LinearGradient
+                        colors={['#E8EDE6', '#D4DDD0'] as [string, string]}
+                        style={{
+                          padding: 16,
+                          borderRadius: 16,
+                        }}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        <View className="flex-row items-start mb-2">
+                          <View className="w-8 h-8 rounded-full bg-white/50 items-center justify-center mr-3">
+                            {reflection.type === 'follow-up' ? (
+                              <History size={16} color="#5C6B56" strokeWidth={2} />
+                            ) : (
+                              <Sparkles size={16} color="#5C6B56" strokeWidth={2} />
+                            )}
+                          </View>
+                          <View className="flex-1">
+                            <Text
+                              style={{ fontFamily: 'CormorantGaramond_500Medium' }}
+                              className="text-stone-700 text-base leading-5"
+                            >
+                              {reflection.prompt}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View className="flex-row items-center justify-between mt-2">
+                          <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-sm" >
+                            <Text style={{ color: '#5C6B56' }}>Reflect on this →</Text>
+                          </Text>
+                          {reflection.relatedEntryId && (
+                            <Pressable
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleViewRelatedEntry(reflection.relatedEntryId!);
+                              }}
+                              className="bg-white/50 px-2 py-1 rounded-full"
+                            >
+                              <Text
+                                style={{ fontFamily: 'DMSans_400Regular' }}
+                                className="text-stone-500 text-xs"
+                              >
+                                View original
+                              </Text>
+                            </Pressable>
+                          )}
+                        </View>
+                      </LinearGradient>
+                    </AnimatedPressable>
+                  ))}
+
+                  <View className="h-4" />
+                </>
+              )}
+
+              {loadingReflections && entries.length >= 3 && (
+                <Animated.View
+                  entering={FadeInDown.delay(100).springify()}
+                  className="bg-stone-100 rounded-2xl p-4 mb-6"
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_400Regular' }}
+                    className="text-stone-400 text-sm text-center"
+                  >
+                    Finding reflection prompts...
+                  </Text>
+                </Animated.View>
+              )}
 
               {/* Random Prompt Button */}
               <AnimatedPressable
