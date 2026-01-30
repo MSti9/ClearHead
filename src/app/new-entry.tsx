@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, Pressable, Keyboard, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, AlertTriangle } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -12,6 +12,7 @@ export default function NewEntryScreen() {
   const params = useLocalSearchParams<{ prompt?: string }>();
   const addEntry = useJournalStore((s) => s.addEntry);
   const [content, setContent] = useState('');
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const promptText = params.prompt || null;
@@ -27,6 +28,16 @@ export default function NewEntryScreen() {
 
   const handleClose = () => {
     Keyboard.dismiss();
+    // If there's content, show confirmation modal
+    if (hasContent) {
+      setShowDiscardModal(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowDiscardModal(false);
     router.back();
   };
 
@@ -142,6 +153,70 @@ export default function NewEntryScreen() {
           </Text>
         </Animated.View>
       </SafeAreaView>
+
+      {/* Discard Confirmation Modal */}
+      <Modal
+        visible={showDiscardModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDiscardModal(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50 items-center justify-center px-8"
+          onPress={() => setShowDiscardModal(false)}
+        >
+          <Pressable
+            className="bg-white rounded-3xl p-6 w-full max-w-sm"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="items-center mb-4">
+              <View className="w-12 h-12 rounded-full bg-amber-100 items-center justify-center mb-3">
+                <AlertTriangle size={24} color="#D97706" />
+              </View>
+              <Text
+                style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                className="text-stone-800 text-xl text-center"
+              >
+                Discard entry?
+              </Text>
+            </View>
+
+            <Text
+              style={{ fontFamily: 'DMSans_400Regular' }}
+              className="text-stone-500 text-center mb-6"
+            >
+              You have unsaved writing. Are you sure you want to leave without saving?
+            </Text>
+
+            <View className="gap-3">
+              <Pressable
+                onPress={() => setShowDiscardModal(false)}
+                className="py-3.5 rounded-2xl bg-stone-100"
+              >
+                <Text
+                  style={{ fontFamily: 'DMSans_500Medium' }}
+                  className="text-stone-700 text-center"
+                >
+                  Keep writing
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleConfirmDiscard}
+                className="py-3.5 rounded-2xl"
+                style={{ backgroundColor: '#C4775A' }}
+              >
+                <Text
+                  style={{ fontFamily: 'DMSans_500Medium' }}
+                  className="text-white text-center"
+                >
+                  Discard
+                </Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
