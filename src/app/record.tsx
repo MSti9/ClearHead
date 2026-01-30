@@ -1,0 +1,391 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { X, Mic, Square, Check, Pause, Play } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+  cancelAnimation,
+  withSpring,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+import { useJournalStore } from '@/stores/journalStore';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function PulsingRing() {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0.6);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(1, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(0.6, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+  }, [scale, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          width: 160,
+          height: 160,
+          borderRadius: 80,
+          borderWidth: 3,
+          borderColor: '#C4775A',
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+function WaveformBar({ index, isRecording }: { index: number; isRecording: boolean }) {
+  const height = useSharedValue(20);
+
+  useEffect(() => {
+    if (isRecording) {
+      height.value = withRepeat(
+        withSequence(
+          withTiming(20 + Math.random() * 40, {
+            duration: 200 + Math.random() * 200,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          withTiming(20 + Math.random() * 20, {
+            duration: 200 + Math.random() * 200,
+            easing: Easing.inOut(Easing.ease),
+          })
+        ),
+        -1,
+        true
+      );
+    } else {
+      cancelAnimation(height);
+      height.value = withSpring(20);
+    }
+  }, [isRecording, height]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width: 4,
+          borderRadius: 2,
+          backgroundColor: '#C4775A',
+          marginHorizontal: 2,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+export default function RecordScreen() {
+  const router = useRouter();
+  const addEntry = useJournalStore((s) => s.addEntry);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [hasRecorded, setHasRecorded] = useState(false);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const buttonScale = useSharedValue(1);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync();
+      }
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        console.log('Permission not granted');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      recordingRef.current = recording;
+      setIsRecording(true);
+      setHasRecorded(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      timerRef.current = setInterval(() => {
+        setDuration((d) => d + 1);
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+    }
+  };
+
+  const pauseRecording = async () => {
+    if (recordingRef.current) {
+      if (isPaused) {
+        await recordingRef.current.startAsync();
+        timerRef.current = setInterval(() => {
+          setDuration((d) => d + 1);
+        }, 1000);
+      } else {
+        await recordingRef.current.pauseAsync();
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      }
+      setIsPaused(!isPaused);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (recordingRef.current) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      await recordingRef.current.stopAndUnloadAsync();
+      setIsRecording(false);
+      setIsPaused(false);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
+
+  const saveRecording = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    addEntry({
+      content: `Voice note recorded for ${formatDuration(duration)}. (Voice transcription would appear here with AI integration)`,
+      type: 'voice',
+      voiceDuration: duration,
+    });
+    router.back();
+  };
+
+  const handleMainButton = () => {
+    buttonScale.value = withSequence(
+      withSpring(0.9),
+      withSpring(1)
+    );
+
+    if (!isRecording && !hasRecorded) {
+      startRecording();
+    } else if (isRecording) {
+      stopRecording();
+    }
+  };
+
+  const handleClose = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  };
+
+  const mainButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  return (
+    <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
+      <SafeAreaView edges={['top', 'bottom']} className="flex-1">
+        {/* Header */}
+        <Animated.View
+          entering={FadeIn.delay(100)}
+          className="flex-row items-center justify-between px-6 py-4"
+        >
+          <Pressable
+            onPress={handleClose}
+            className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center"
+          >
+            <X size={20} color="#78716C" strokeWidth={2} />
+          </Pressable>
+          <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
+            Voice Note
+          </Text>
+          <View className="w-10" />
+        </Animated.View>
+
+        {/* Main Content */}
+        <View className="flex-1 items-center justify-center px-6">
+          {/* Prompt Text */}
+          <Animated.View entering={FadeInDown.delay(200).springify()} className="items-center mb-12">
+            <Text
+              style={{ fontFamily: 'CormorantGaramond_500Medium' }}
+              className="text-2xl text-stone-600 text-center mb-2"
+            >
+              {!hasRecorded
+                ? 'What is on your mind?'
+                : isRecording
+                ? 'Take your time...'
+                : 'Ready to save?'}
+            </Text>
+            <Text
+              style={{ fontFamily: 'DMSans_400Regular' }}
+              className="text-stone-400 text-center"
+            >
+              {!hasRecorded
+                ? 'Tap to start recording'
+                : isRecording
+                ? 'Speak freely. No one else will hear this.'
+                : 'You can save or re-record'}
+            </Text>
+          </Animated.View>
+
+          {/* Waveform */}
+          {isRecording && (
+            <Animated.View
+              entering={FadeIn}
+              className="flex-row items-center justify-center h-16 mb-8"
+            >
+              {Array.from({ length: 20 }).map((_, i) => (
+                <WaveformBar key={i} index={i} isRecording={isRecording && !isPaused} />
+              ))}
+            </Animated.View>
+          )}
+
+          {/* Duration */}
+          <Animated.Text
+            entering={FadeInDown.delay(300).springify()}
+            style={{ fontFamily: 'DMSans_600SemiBold' }}
+            className="text-4xl text-stone-700 mb-12"
+          >
+            {formatDuration(duration)}
+          </Animated.Text>
+
+          {/* Recording Button */}
+          <Animated.View entering={FadeInDown.delay(400).springify()}>
+            <View className="items-center justify-center">
+              {isRecording && <PulsingRing />}
+              <AnimatedPressable
+                onPress={handleMainButton}
+                style={[mainButtonStyle]}
+              >
+                <LinearGradient
+                  colors={
+                    isRecording
+                      ? (['#DC6B6B', '#C45C5C'] as [string, string])
+                      : (['#C4775A', '#D4A088'] as [string, string])
+                  }
+                  style={{
+                    width: 160,
+                    height: 160,
+                    borderRadius: 80,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  {isRecording ? (
+                    <Square size={48} color="white" fill="white" strokeWidth={0} />
+                  ) : (
+                    <Mic size={48} color="white" strokeWidth={2} />
+                  )}
+                </LinearGradient>
+              </AnimatedPressable>
+            </View>
+          </Animated.View>
+
+          {/* Secondary Controls */}
+          {hasRecorded && (
+            <Animated.View
+              entering={FadeInDown.delay(500).springify()}
+              className="flex-row items-center mt-12 gap-6"
+            >
+              {isRecording && (
+                <Pressable
+                  onPress={pauseRecording}
+                  className="w-14 h-14 rounded-full bg-stone-200 items-center justify-center"
+                >
+                  {isPaused ? (
+                    <Play size={24} color="#78716C" strokeWidth={2} />
+                  ) : (
+                    <Pause size={24} color="#78716C" strokeWidth={2} />
+                  )}
+                </Pressable>
+              )}
+              {!isRecording && hasRecorded && (
+                <>
+                  <Pressable
+                    onPress={() => {
+                      setDuration(0);
+                      setHasRecorded(false);
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }}
+                    className="w-14 h-14 rounded-full bg-stone-200 items-center justify-center"
+                  >
+                    <X size={24} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={saveRecording}
+                    className="w-14 h-14 rounded-full items-center justify-center"
+                    style={{ backgroundColor: '#7C8B75' }}
+                  >
+                    <Check size={24} color="white" strokeWidth={2.5} />
+                  </Pressable>
+                </>
+              )}
+            </Animated.View>
+          )}
+        </View>
+
+        {/* Bottom hint */}
+        <Animated.View entering={FadeInDown.delay(600).springify()} className="px-6 pb-6">
+          <Text
+            style={{ fontFamily: 'DMSans_400Regular' }}
+            className="text-stone-400 text-xs text-center"
+          >
+            Your recordings stay on your device
+          </Text>
+        </Animated.View>
+      </SafeAreaView>
+    </View>
+  );
+}
