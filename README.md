@@ -72,6 +72,10 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Clean, distraction-free writing interface
 - Word count tracking
 - Support for prompted and free-form entries
+- **Rich text editing with Markdown support**
+  - Bold, italic, headers, quotes, bullet lists, numbered lists
+  - Formatting toolbar for easy access
+  - Markdown renders beautifully when viewing entries
 
 ### Entry Management
 - View full entry details

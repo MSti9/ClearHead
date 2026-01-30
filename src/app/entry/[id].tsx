@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Trash2, Edit3, Check, X } from 'lucide-react-native';
+import { ChevronLeft, Trash2, Edit3, Check, X, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { format } from 'date-fns';
+import { MarkdownText, insertFormatting } from '@/components/MarkdownText';
+import { TAG_CONFIG } from '@/lib/autoTag';
 
 export default function EntryDetailScreen() {
   const router = useRouter();
@@ -17,6 +19,9 @@ export default function EntryDetailScreen() {
   const entry = entries.find((e) => e.id === id);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(entry?.content || '');
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
   if (!entry) {
     return (
@@ -33,25 +38,32 @@ export default function EntryDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Entry',
-      'Are you sure you want to delete this entry? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            deleteEntry(entry.id);
-            router.back();
-          },
-        },
-      ]
-    );
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteEntry(entry.id);
+    router.back();
   };
 
   const handleEdit = () => {
     setIsEditing(true);
+  };
+
+  const handleFormat = (format: 'bold' | 'italic' | 'header' | 'quote' | 'list' | 'numbered') => {
+    const { newText, newCursorPosition } = insertFormatting(
+      editedContent,
+      selection.start,
+      selection.end,
+      format
+    );
+    setEditedContent(newText);
+
+    setTimeout(() => {
+      inputRef.current?.setNativeProps({
+        selection: { start: newCursorPosition, end: newCursorPosition },
+      });
+    }, 50);
   };
 
   const handleSaveEdit = () => {
@@ -197,33 +209,171 @@ export default function EntryDetailScreen() {
           {/* Content */}
           <Animated.View entering={FadeInDown.delay(250).springify()}>
             {isEditing ? (
-              <TextInput
-                value={editedContent}
-                onChangeText={setEditedContent}
-                multiline
-                textAlignVertical="top"
-                autoFocus
-                style={{
-                  fontFamily: 'DMSans_400Regular',
-                  fontSize: 16,
-                  lineHeight: 26,
-                  color: '#44403C',
-                  minHeight: 200,
-                  backgroundColor: 'white',
-                  borderRadius: 16,
-                  padding: 16,
-                }}
-              />
+              <View>
+                {/* Format Toolbar */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 12 }}
+                  style={{ flexGrow: 0 }}
+                >
+                  <Pressable
+                    onPress={() => handleFormat('bold')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <Bold size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleFormat('italic')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <Italic size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleFormat('header')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <Heading2 size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleFormat('quote')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <Quote size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleFormat('list')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <List size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleFormat('numbered')}
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+                  >
+                    <ListOrdered size={18} color="#78716C" strokeWidth={2} />
+                  </Pressable>
+                </ScrollView>
+                <TextInput
+                  ref={inputRef}
+                  value={editedContent}
+                  onChangeText={setEditedContent}
+                  onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                  multiline
+                  textAlignVertical="top"
+                  autoFocus
+                  style={{
+                    fontFamily: 'DMSans_400Regular',
+                    fontSize: 16,
+                    lineHeight: 26,
+                    color: '#44403C',
+                    minHeight: 200,
+                    backgroundColor: 'white',
+                    borderRadius: 16,
+                    padding: 16,
+                  }}
+                />
+                <Text
+                  style={{ fontFamily: 'DMSans_400Regular' }}
+                  className="text-stone-400 text-xs mt-2"
+                >
+                  Tip: Use **bold**, *italic*, ## headers, &gt; quotes, - lists
+                </Text>
+              </View>
             ) : (
-              <Text
-                style={{ fontFamily: 'DMSans_400Regular' }}
-                className="text-stone-700 text-base leading-7"
-              >
-                {entry.content}
-              </Text>
+              <MarkdownText content={entry.content} />
             )}
           </Animated.View>
+
+          {/* Tags */}
+          {entry.tags && entry.tags.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.delay(300).springify()}
+              className="flex-row flex-wrap gap-2 mt-6 pt-6 border-t border-stone-200"
+            >
+              {entry.tags.map((tag) => {
+                const config = TAG_CONFIG[tag];
+                if (!config) return null;
+                return (
+                  <View
+                    key={tag}
+                    className="px-3 py-1.5 rounded-full"
+                    style={{ backgroundColor: config.bgColor }}
+                  >
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium', color: config.color, fontSize: 12 }}
+                    >
+                      #{config.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </Animated.View>
+          )}
         </ScrollView>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          visible={showDeleteModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <Pressable
+            className="flex-1 bg-black/50 items-center justify-center px-8"
+            onPress={() => setShowDeleteModal(false)}
+          >
+            <Pressable
+              className="bg-white rounded-3xl p-6 w-full max-w-sm"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="items-center mb-4">
+                <View className="w-12 h-12 rounded-full bg-red-100 items-center justify-center mb-3">
+                  <Trash2 size={24} color="#DC2626" />
+                </View>
+                <Text
+                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                  className="text-stone-800 text-xl text-center"
+                >
+                  Delete entry?
+                </Text>
+              </View>
+
+              <Text
+                style={{ fontFamily: 'DMSans_400Regular' }}
+                className="text-stone-500 text-center mb-6"
+              >
+                This cannot be undone. Your entry will be permanently deleted.
+              </Text>
+
+              <View className="gap-3">
+                <Pressable
+                  onPress={() => setShowDeleteModal(false)}
+                  className="py-3.5 rounded-2xl bg-stone-100"
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-stone-700 text-center"
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleConfirmDelete}
+                  className="py-3.5 rounded-2xl bg-red-500"
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-white text-center"
+                  >
+                    Delete
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaView>
     </View>
   );

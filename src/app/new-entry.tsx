@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, Keyboard, Modal } from 'react-native';
+import { View, Text, TextInput, Pressable, Keyboard, Modal, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Check, AlertTriangle } from 'lucide-react-native';
+import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { insertFormatting } from '@/components/MarkdownText';
+
+interface SelectionState {
+  start: number;
+  end: number;
+}
 
 export default function NewEntryScreen() {
   const router = useRouter();
@@ -13,6 +19,8 @@ export default function NewEntryScreen() {
   const addEntry = useJournalStore((s) => s.addEntry);
   const [content, setContent] = useState('');
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [selection, setSelection] = useState<SelectionState>({ start: 0, end: 0 });
+  const [showFormatBar, setShowFormatBar] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const promptText = params.prompt || null;
@@ -52,7 +60,42 @@ export default function NewEntryScreen() {
     router.back();
   };
 
+  const handleFormat = (format: 'bold' | 'italic' | 'header' | 'quote' | 'list' | 'numbered') => {
+    const { newText, newCursorPosition } = insertFormatting(
+      content,
+      selection.start,
+      selection.end,
+      format
+    );
+    setContent(newText);
+
+    // Set cursor position after formatting
+    setTimeout(() => {
+      inputRef.current?.setNativeProps({
+        selection: { start: newCursorPosition, end: newCursorPosition },
+      });
+    }, 50);
+  };
+
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+
+  const FormatButton = ({
+    icon: Icon,
+    onPress,
+    label,
+  }: {
+    icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+    onPress: () => void;
+    label: string;
+  }) => (
+    <Pressable
+      onPress={onPress}
+      className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+      accessibilityLabel={label}
+    >
+      <Icon size={18} color="#78716C" strokeWidth={2} />
+    </Pressable>
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
@@ -68,9 +111,11 @@ export default function NewEntryScreen() {
           >
             <X size={20} color="#78716C" strokeWidth={2} />
           </Pressable>
-          <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm">
-            {wordCount > 0 ? `${wordCount} words` : 'New entry'}
-          </Text>
+          <Pressable onPress={() => setShowFormatBar(!showFormatBar)}>
+            <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm">
+              {wordCount > 0 ? `${wordCount} words` : 'New entry'}
+            </Text>
+          </Pressable>
           <Pressable
             onPress={handleSave}
             disabled={!hasContent}
@@ -80,6 +125,34 @@ export default function NewEntryScreen() {
             <Check size={20} color={hasContent ? 'white' : '#9C9690'} strokeWidth={2.5} />
           </Pressable>
         </Animated.View>
+
+        {/* Format Toolbar */}
+        {showFormatBar && (
+          <Animated.View
+            entering={FadeInDown.duration(200)}
+            className="px-6 pb-3"
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+              style={{ flexGrow: 0 }}
+            >
+              <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
+              <FormatButton icon={Italic} onPress={() => handleFormat('italic')} label="Italic" />
+              <FormatButton icon={Heading2} onPress={() => handleFormat('header')} label="Heading" />
+              <FormatButton icon={Quote} onPress={() => handleFormat('quote')} label="Quote" />
+              <FormatButton icon={List} onPress={() => handleFormat('list')} label="Bullet list" />
+              <FormatButton icon={ListOrdered} onPress={() => handleFormat('numbered')} label="Numbered list" />
+            </ScrollView>
+            <Text
+              style={{ fontFamily: 'DMSans_400Regular' }}
+              className="text-stone-400 text-xs mt-2"
+            >
+              Tip: Use **bold**, *italic*, ## headers, &gt; quotes, - lists
+            </Text>
+          </Animated.View>
+        )}
 
         <KeyboardAwareScrollView
           style={{ flex: 1 }}
@@ -111,17 +184,32 @@ export default function NewEntryScreen() {
             {/* Writing Area */}
             <Animated.View entering={FadeInUp.delay(200).springify()} className="flex-1">
               {!promptText && (
-                <Text
-                  style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                  className="text-stone-400 text-xl mb-4"
-                >
-                  What is on your mind?
-                </Text>
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text
+                    style={{ fontFamily: 'CormorantGaramond_500Medium' }}
+                    className="text-stone-400 text-xl"
+                  >
+                    What is on your mind?
+                  </Text>
+                  <Pressable
+                    onPress={() => setShowFormatBar(!showFormatBar)}
+                    className="px-3 py-1.5 rounded-full bg-stone-100"
+                  >
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium' }}
+                      className="text-stone-500 text-xs"
+                    >
+                      {showFormatBar ? 'Hide format' : 'Format'}
+                    </Text>
+                  </Pressable>
+                </View>
               )}
               <TextInput
                 ref={inputRef}
                 value={content}
                 onChangeText={setContent}
+                onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                onFocus={() => setShowFormatBar(true)}
                 placeholder="Start writing..."
                 placeholderTextColor="#9C9690"
                 multiline
