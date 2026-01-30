@@ -12,6 +12,14 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Quick access to voice recording and text journaling
 - Browse prompts when you do not know where to start
 - View recent journal entries (5 most recent with "View all" link)
+- Calendar button to view journaling history
+
+### Calendar View
+- Monthly calendar showing which days you journaled
+- Navigate between months to see your history
+- Monthly stats: days journaled and total entries
+- Tap any highlighted day to see that day's entries
+- Visual indicators for days with multiple entries
 
 ### AI-Powered Patterns & Insights
 - After 10+ entries, AI analyzes your journaling patterns

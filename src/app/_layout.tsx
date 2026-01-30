@@ -80,6 +80,13 @@ function RootLayoutNav() {
             presentation: 'card',
           }}
         />
+        <Stack.Screen
+          name="calendar"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );

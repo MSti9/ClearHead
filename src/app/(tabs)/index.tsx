@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mic, PenLine, Sparkles, ChevronRight, Briefcase, Heart, Sun, Cloud, Users, TrendingUp, Moon } from 'lucide-react-native';
+import { Mic, PenLine, Sparkles, ChevronRight, Briefcase, Heart, Sun, Cloud, Users, TrendingUp, Moon, Calendar } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInDown,
@@ -329,6 +329,26 @@ export default function HomeScreen() {
           {/* Header with breathing orb */}
           <View className="relative overflow-hidden px-6 pt-4 pb-8">
             <BreathingOrb />
+
+            {/* Calendar button */}
+            <Animated.View
+              entering={FadeInDown.delay(50).springify()}
+              className="absolute top-4 right-6 z-10"
+            >
+              <Pressable
+                onPress={() => router.push('/calendar')}
+                className="w-10 h-10 rounded-full bg-white/80 items-center justify-center"
+                style={{
+                  shadowColor: '#2D2A26',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
+              >
+                <Calendar size={18} color="#78716C" strokeWidth={2} />
+              </Pressable>
+            </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(100).springify()}>
               <Text
