@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { extractTagsFromContent } from '@/lib/autoTag';
 
 export type EntryType = 'text' | 'voice' | 'prompted';
 
@@ -12,6 +13,8 @@ export interface JournalEntry {
   promptUsed?: string;
   voiceDuration?: number;
   mood?: string;
+  tags?: string[];
+  sentiment?: 'positive' | 'negative' | 'neutral' | 'mixed';
 }
 
 export interface ReminderSettings {
@@ -55,11 +58,17 @@ export const useJournalStore = create<JournalState>((set, get) => ({
 
   addEntry: (entry) => {
     const now = new Date().toISOString();
+
+    // Auto-tag the entry
+    const { themes, sentiment } = extractTagsFromContent(entry.content);
+
     const newEntry: JournalEntry = {
       ...entry,
       id: `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       createdAt: now,
       updatedAt: now,
+      tags: themes,
+      sentiment,
     };
 
     set((state) => {

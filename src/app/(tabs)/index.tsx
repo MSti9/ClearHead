@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { analyzePatterns, type JournalInsight } from '@/lib/analyzePatterns';
+import { TAG_CONFIG } from '@/lib/autoTag';
 import { format, isToday, isYesterday, differenceInDays, startOfMonth, isSameMonth } from 'date-fns';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -217,6 +218,7 @@ interface EntryPreviewProps {
     createdAt: string;
     type: string;
     promptUsed?: string;
+    tags?: string[];
   };
   index: number;
 }
@@ -229,6 +231,7 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
   };
 
   const preview = entry.content.substring(0, 100) + (entry.content.length > 100 ? '...' : '');
+  const displayTags = entry.tags?.slice(0, 3) || [];
 
   return (
     <AnimatedPressable
@@ -284,6 +287,26 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
       >
         {preview}
       </Text>
+      {displayTags.length > 0 && (
+        <View className="flex-row flex-wrap gap-1.5 mt-2">
+          {displayTags.map((tag) => {
+            const config = TAG_CONFIG[tag] || { color: '#78716C', bgColor: '#F5F2EE', label: tag };
+            return (
+              <View
+                key={tag}
+                className="px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: config.bgColor }}
+              >
+                <Text
+                  style={{ fontFamily: 'DMSans_500Medium', color: config.color, fontSize: 10 }}
+                >
+                  #{config.label.toLowerCase()}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
     </AnimatedPressable>
   );
 }

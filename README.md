@@ -29,6 +29,14 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Insights are cached for 24 hours to minimize API usage
 - Teaser message shows progress toward unlocking insights
 
+### Auto-Tagging & Filtering
+- Entries are automatically tagged based on content
+- Theme tags: #work, #family, #relationships, #health, #stress, #grief, #joy, #gratitude, #growth, #money, #faith, #creativity
+- Sentiment detection: positive, negative, neutral, mixed
+- Tags displayed on entry cards
+- Filter entries by tag to see patterns (in "View all" screen)
+- Tag counts show how often you write about each topic
+
 ### Voice Recording
 - Tap to record your thoughts
 - Visual waveform feedback while recording

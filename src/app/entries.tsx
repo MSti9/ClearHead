@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Mic, PenLine, Sparkles } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ArrowLeft, Mic, PenLine, Sparkles, X, Filter } from 'lucide-react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import { TAG_CONFIG, getTagStats } from '@/lib/autoTag';
 import { format, isToday, isYesterday, isSameMonth, isSameYear } from 'date-fns';
 
 function formatEntryDate(dateString: string): string {
@@ -32,6 +33,7 @@ interface EntryItemProps {
     createdAt: string;
     type: string;
     promptUsed?: string;
+    tags?: string[];
   };
   index: number;
 }
@@ -47,6 +49,7 @@ function EntryItem({ entry, index }: EntryItemProps) {
 
   const TypeIcon = entry.type === 'voice' ? Mic : entry.type === 'prompted' ? Sparkles : PenLine;
   const typeColor = entry.type === 'voice' ? '#D97706' : entry.type === 'prompted' ? '#7C8B75' : '#9C9690';
+  const displayTags = entry.tags?.slice(0, 3) || [];
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
@@ -89,6 +92,27 @@ function EntryItem({ entry, index }: EntryItemProps) {
         >
           {preview}
         </Text>
+
+        {displayTags.length > 0 && (
+          <View className="flex-row flex-wrap gap-1.5 mt-2">
+            {displayTags.map((tag) => {
+              const config = TAG_CONFIG[tag] || { color: '#78716C', bgColor: '#F5F2EE', label: tag };
+              return (
+                <View
+                  key={tag}
+                  className="px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: config.bgColor }}
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium', color: config.color, fontSize: 10 }}
+                  >
+                    #{config.label.toLowerCase()}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -97,20 +121,40 @@ function EntryItem({ entry, index }: EntryItemProps) {
 export default function EntriesScreen() {
   const router = useRouter();
   const entries = useJournalStore((s) => s.entries);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // Get tag statistics
+  const tagStats = useMemo(() => getTagStats(entries), [entries]);
+  const availableTags = useMemo(() =>
+    Object.entries(tagStats)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag),
+    [tagStats]
+  );
+
+  // Filter entries by selected tag
+  const filteredEntries = useMemo(() => {
+    if (!selectedTag) return entries;
+    return entries.filter((entry) => entry.tags?.includes(selectedTag));
+  }, [entries, selectedTag]);
 
   // Group entries by month
-  const groupedEntries: { header: string; entries: typeof entries }[] = [];
-  let currentHeader = '';
+  const groupedEntries = useMemo(() => {
+    const groups: { header: string; entries: typeof filteredEntries }[] = [];
+    let currentHeader = '';
 
-  entries.forEach((entry) => {
-    const header = getMonthHeader(entry.createdAt);
-    if (header !== currentHeader) {
-      currentHeader = header;
-      groupedEntries.push({ header, entries: [entry] });
-    } else {
-      groupedEntries[groupedEntries.length - 1].entries.push(entry);
-    }
-  });
+    filteredEntries.forEach((entry) => {
+      const header = getMonthHeader(entry.createdAt);
+      if (header !== currentHeader) {
+        currentHeader = header;
+        groups.push({ header, entries: [entry] });
+      } else {
+        groups[groups.length - 1].entries.push(entry);
+      }
+    });
+
+    return groups;
+  }, [filteredEntries]);
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
@@ -128,16 +172,107 @@ export default function EntriesScreen() {
               style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
               className="text-2xl text-stone-800"
             >
-              All Entries
+              {selectedTag ? `#${TAG_CONFIG[selectedTag]?.label.toLowerCase() || selectedTag}` : 'All Entries'}
             </Text>
             <Text
               style={{ fontFamily: 'DMSans_400Regular' }}
               className="text-stone-400 text-sm"
             >
-              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+              {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
+              {selectedTag && ` · ${entries.length} total`}
             </Text>
           </View>
         </View>
+
+        {/* Tag Filter */}
+        {availableTags.length > 0 && (
+          <Animated.View entering={FadeIn.delay(100)}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-6 mb-4"
+              contentContainerStyle={{ gap: 8 }}
+              style={{ flexGrow: 0 }}
+            >
+              {/* All entries button */}
+              <Pressable
+                onPress={() => setSelectedTag(null)}
+                className="flex-row items-center px-3 py-2 rounded-full"
+                style={{
+                  backgroundColor: !selectedTag ? '#2D2A26' : '#F5F2EE',
+                }}
+              >
+                <Filter size={14} color={!selectedTag ? 'white' : '#78716C'} strokeWidth={2} />
+                <Text
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: !selectedTag ? 'white' : '#78716C',
+                    marginLeft: 6,
+                    fontSize: 13,
+                  }}
+                >
+                  All
+                </Text>
+              </Pressable>
+
+              {/* Tag filter buttons */}
+              {availableTags.map((tag) => {
+                const config = TAG_CONFIG[tag] || { color: '#78716C', bgColor: '#F5F2EE', label: tag };
+                const isSelected = selectedTag === tag;
+                const count = tagStats[tag] || 0;
+
+                return (
+                  <Pressable
+                    key={tag}
+                    onPress={() => setSelectedTag(isSelected ? null : tag)}
+                    className="flex-row items-center px-3 py-2 rounded-full"
+                    style={{
+                      backgroundColor: isSelected ? config.color : config.bgColor,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: isSelected ? 'white' : config.color,
+                        fontSize: 13,
+                      }}
+                    >
+                      #{config.label.toLowerCase()}
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: 'DMSans_400Regular',
+                        color: isSelected ? 'rgba(255,255,255,0.7)' : `${config.color}99`,
+                        fontSize: 11,
+                        marginLeft: 4,
+                      }}
+                    >
+                      {count}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        {/* Selected tag clear button */}
+        {selectedTag && (
+          <View className="px-6 mb-3">
+            <Pressable
+              onPress={() => setSelectedTag(null)}
+              className="flex-row items-center self-start bg-stone-100 px-3 py-1.5 rounded-full"
+            >
+              <X size={14} color="#78716C" strokeWidth={2} />
+              <Text
+                style={{ fontFamily: 'DMSans_400Regular' }}
+                className="text-stone-500 text-xs ml-1.5"
+              >
+                Clear filter
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         <ScrollView
           className="flex-1 px-6"
@@ -162,7 +297,7 @@ export default function EntriesScreen() {
             </View>
           ))}
 
-          {entries.length === 0 && (
+          {filteredEntries.length === 0 && (
             <View className="items-center py-12">
               <View className="w-16 h-16 rounded-full bg-stone-100 items-center justify-center mb-4">
                 <PenLine size={28} color="#9C9690" strokeWidth={1.5} />
@@ -171,13 +306,13 @@ export default function EntriesScreen() {
                 style={{ fontFamily: 'CormorantGaramond_500Medium' }}
                 className="text-stone-600 text-xl text-center mb-1"
               >
-                No entries yet
+                {selectedTag ? 'No entries with this tag' : 'No entries yet'}
               </Text>
               <Text
                 style={{ fontFamily: 'DMSans_400Regular' }}
                 className="text-stone-400 text-sm text-center"
               >
-                Start journaling to see your entries here.
+                {selectedTag ? 'Try a different filter or write about this topic.' : 'Start journaling to see your entries here.'}
               </Text>
             </View>
           )}
