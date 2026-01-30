@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, Keyboard, Modal, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, Keyboard, Modal, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { insertFormatting } from '@/components/MarkdownText';
 
 interface SelectionState {
@@ -242,12 +241,17 @@ export default function NewEntryScreen() {
   );
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
-      <SafeAreaView edges={['top', 'bottom']} className="flex-1">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1"
+      style={{ backgroundColor: '#FAF8F5' }}
+    >
+      <SafeAreaView edges={['bottom']} className="flex-1">
         {/* Header */}
         <Animated.View
           entering={FadeIn.delay(50)}
           className="flex-row items-center justify-between px-6 py-4"
+          style={{ paddingTop: 60 }}
         >
           <Pressable
             onPress={handleClose}
@@ -270,11 +274,10 @@ export default function NewEntryScreen() {
           </Pressable>
         </Animated.View>
 
-        <KeyboardAwareScrollView
+        <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
-          bottomOffset={showFormatBar ? 80 : 0}
         >
           <View className="flex-1 px-6">
             {/* Prompt (if provided) */}
@@ -343,7 +346,7 @@ export default function NewEntryScreen() {
               />
             </Animated.View>
           </View>
-        </KeyboardAwareScrollView>
+        </ScrollView>
 
         {/* Bottom hint */}
         {!showFormatBar && (
@@ -447,6 +450,6 @@ export default function NewEntryScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
