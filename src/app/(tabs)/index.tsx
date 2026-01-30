@@ -16,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import { analyzePatterns, type JournalInsight } from '@/lib/analyzePatterns';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format, isToday, isYesterday, differenceInDays, startOfMonth, isSameMonth } from 'date-fns';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -41,6 +41,64 @@ function formatEntryDate(dateString: string): string {
   if (isToday(date)) return 'Today';
   if (isYesterday(date)) return 'Yesterday';
   return format(date, 'MMM d');
+}
+
+interface GentleStats {
+  message: string;
+  type: 'celebration' | 'gentle-nudge' | 'welcome';
+}
+
+function getGentleStats(entries: { createdAt: string }[], lastEntryDate: string | null): GentleStats | null {
+  if (entries.length === 0) {
+    return null; // Will show empty state instead
+  }
+
+  const now = new Date();
+  const thisMonth = startOfMonth(now);
+
+  // Count entries this month
+  const entriesThisMonth = entries.filter((e) => {
+    const entryDate = new Date(e.createdAt);
+    return isSameMonth(entryDate, now);
+  }).length;
+
+  // Calculate days since last entry
+  const lastEntry = entries[0];
+  const lastEntryDateObj = new Date(lastEntry.createdAt);
+  const daysSinceLastEntry = differenceInDays(now, lastEntryDateObj);
+
+  // If journaled today - celebrate!
+  if (isToday(lastEntryDateObj)) {
+    if (entriesThisMonth === 1) {
+      return { message: "First entry of the month!", type: 'celebration' };
+    }
+    return {
+      message: `You've journaled ${entriesThisMonth} ${entriesThisMonth === 1 ? 'time' : 'times'} this month`,
+      type: 'celebration'
+    };
+  }
+
+  // If it's been a while - gentle check-in (not guilt)
+  if (daysSinceLastEntry >= 5) {
+    return {
+      message: `It's been ${daysSinceLastEntry} days. No pressure, just checking in.`,
+      type: 'gentle-nudge'
+    };
+  }
+
+  // Recent activity - celebrate monthly progress
+  if (entriesThisMonth > 0) {
+    return {
+      message: `${entriesThisMonth} ${entriesThisMonth === 1 ? 'entry' : 'entries'} this month`,
+      type: 'celebration'
+    };
+  }
+
+  // New month, haven't journaled yet
+  return {
+    message: "New month, fresh start",
+    type: 'welcome'
+  };
 }
 
 function BreathingOrb() {
@@ -297,13 +355,14 @@ function InsightCard({ insight, index }: { insight: JournalInsight; index: numbe
 export default function HomeScreen() {
   const router = useRouter();
   const entries = useJournalStore((s) => s.entries);
-  const streak = useJournalStore((s) => s.streak);
+  const lastEntryDate = useJournalStore((s) => s.lastEntryDate);
   const [insights, setInsights] = useState<JournalInsight[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
   const recentEntries = entries.slice(0, 5);
   const hasEntries = entries.length > 0;
   const hasMoreEntries = entries.length > 5;
+  const gentleStats = getGentleStats(entries, lastEntryDate);
 
   // Analyze patterns when entries change
   useEffect(() => {
@@ -365,18 +424,30 @@ export default function HomeScreen() {
               </Text>
             </Animated.View>
 
-            {streak > 0 && (
+            {gentleStats && (
               <Animated.View
                 entering={FadeInDown.delay(200).springify()}
                 className="mt-4 flex-row items-center"
               >
-                <View className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full flex-row items-center">
-                  <Text className="text-lg mr-1">✨</Text>
+                <View
+                  className="px-3 py-1.5 rounded-full flex-row items-center"
+                  style={{
+                    backgroundColor: gentleStats.type === 'gentle-nudge' ? '#F5F2EE' : '#FEF9EE',
+                    borderWidth: 1,
+                    borderColor: gentleStats.type === 'gentle-nudge' ? '#E8E4DE' : '#FDE68A',
+                  }}
+                >
+                  <Text className="text-base mr-1.5">
+                    {gentleStats.type === 'celebration' ? '✨' : gentleStats.type === 'gentle-nudge' ? '👋' : '🌱'}
+                  </Text>
                   <Text
                     style={{ fontFamily: 'DMSans_500Medium' }}
-                    className="text-amber-700 text-sm"
+                    className="text-sm"
+                    selectable={false}
                   >
-                    {streak} day streak
+                    <Text style={{ color: gentleStats.type === 'gentle-nudge' ? '#78716C' : '#92400E' }}>
+                      {gentleStats.message}
+                    </Text>
                   </Text>
                 </View>
               </Animated.View>
