@@ -25,6 +25,149 @@ export default function NewEntryScreen() {
 
   const promptText = params.prompt || null;
   const hasContent = content.trim().length > 0;
+  const prevContentRef = useRef(content);
+
+  // Handle auto-continuing lists on Enter
+  const handleTextChange = (newText: string) => {
+    const prevText = prevContentRef.current;
+
+    // Check if user just pressed Enter (newline was added)
+    if (newText.length === prevText.length + 1 && newText.endsWith('\n') && !prevText.endsWith('\n')) {
+      // Find the current line before the new Enter
+      const textBeforeNewline = newText.slice(0, -1);
+      const lastNewlineIndex = textBeforeNewline.lastIndexOf('\n');
+      const currentLine = textBeforeNewline.slice(lastNewlineIndex + 1);
+
+      // Check if previous line was a bullet list item
+      if (currentLine.startsWith('- ')) {
+        const listContent = currentLine.slice(2).trim();
+        if (listContent === '') {
+          // Empty bullet - remove it and stop the list (double enter)
+          setContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
+          prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
+          return;
+        }
+        // Continue the bullet list
+        setContent(newText + '- ');
+        prevContentRef.current = newText + '- ';
+        // Move cursor to end
+        setTimeout(() => {
+          inputRef.current?.setNativeProps({
+            selection: { start: newText.length + 2, end: newText.length + 2 },
+          });
+        }, 10);
+        return;
+      }
+
+      // Check if previous line was a numbered list item
+      const numberedMatch = currentLine.match(/^(\d+)\.\s/);
+      if (numberedMatch) {
+        const listContent = currentLine.slice(numberedMatch[0].length).trim();
+        if (listContent === '') {
+          // Empty numbered item - remove it and stop the list (double enter)
+          setContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
+          prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
+          return;
+        }
+        // Continue the numbered list with next number
+        const nextNum = parseInt(numberedMatch[1], 10) + 1;
+        setContent(newText + `${nextNum}. `);
+        prevContentRef.current = newText + `${nextNum}. `;
+        // Move cursor to end
+        setTimeout(() => {
+          const newLength = newText.length + `${nextNum}. `.length;
+          inputRef.current?.setNativeProps({
+            selection: { start: newLength, end: newLength },
+          });
+        }, 10);
+        return;
+      }
+    }
+
+    // Also check for Enter pressed in the middle of text
+    if (newText.length > prevText.length) {
+      const diff = newText.length - prevText.length;
+      // Find where the new character(s) were inserted
+      for (let i = 0; i < prevText.length; i++) {
+        if (newText[i] !== prevText[i]) {
+          // Found the insertion point
+          if (newText[i] === '\n' && diff === 1) {
+            // User pressed Enter, check the line before the cursor
+            const textBeforeCursor = newText.slice(0, i);
+            const lastNewlineBeforeCursor = textBeforeCursor.lastIndexOf('\n');
+            const lineBeforeCursor = textBeforeCursor.slice(lastNewlineBeforeCursor + 1);
+
+            // Check for bullet
+            if (lineBeforeCursor.startsWith('- ')) {
+              const listContent = lineBeforeCursor.slice(2).trim();
+              if (listContent === '') {
+                // Empty bullet - remove it
+                const before = textBeforeCursor.slice(0, lastNewlineBeforeCursor + 1);
+                const after = newText.slice(i + 1);
+                setContent(before + after);
+                prevContentRef.current = before + after;
+                setTimeout(() => {
+                  inputRef.current?.setNativeProps({
+                    selection: { start: before.length, end: before.length },
+                  });
+                }, 10);
+                return;
+              }
+              // Insert new bullet
+              const before = newText.slice(0, i + 1);
+              const after = newText.slice(i + 1);
+              const newContent = before + '- ' + after;
+              setContent(newContent);
+              prevContentRef.current = newContent;
+              setTimeout(() => {
+                inputRef.current?.setNativeProps({
+                  selection: { start: i + 3, end: i + 3 },
+                });
+              }, 10);
+              return;
+            }
+
+            // Check for numbered list
+            const numMatch = lineBeforeCursor.match(/^(\d+)\.\s/);
+            if (numMatch) {
+              const listContent = lineBeforeCursor.slice(numMatch[0].length).trim();
+              if (listContent === '') {
+                // Empty numbered item - remove it
+                const before = textBeforeCursor.slice(0, lastNewlineBeforeCursor + 1);
+                const after = newText.slice(i + 1);
+                setContent(before + after);
+                prevContentRef.current = before + after;
+                setTimeout(() => {
+                  inputRef.current?.setNativeProps({
+                    selection: { start: before.length, end: before.length },
+                  });
+                }, 10);
+                return;
+              }
+              // Insert next number
+              const nextNum = parseInt(numMatch[1], 10) + 1;
+              const before = newText.slice(0, i + 1);
+              const after = newText.slice(i + 1);
+              const prefix = `${nextNum}. `;
+              const newContent = before + prefix + after;
+              setContent(newContent);
+              prevContentRef.current = newContent;
+              setTimeout(() => {
+                inputRef.current?.setNativeProps({
+                  selection: { start: i + 1 + prefix.length, end: i + 1 + prefix.length },
+                });
+              }, 10);
+              return;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    setContent(newText);
+    prevContentRef.current = newText;
+  };
 
   useEffect(() => {
     // Focus the input after a short delay
@@ -68,6 +211,7 @@ export default function NewEntryScreen() {
       format
     );
     setContent(newText);
+    prevContentRef.current = newText;
 
     // Set cursor position after formatting
     setTimeout(() => {
@@ -90,10 +234,10 @@ export default function NewEntryScreen() {
   }) => (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10 rounded-xl items-center justify-center bg-stone-100"
+      className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
       accessibilityLabel={label}
     >
-      <Icon size={18} color="#78716C" strokeWidth={2} />
+      <Icon size={22} color="#78716C" strokeWidth={2} />
     </Pressable>
   );
 
@@ -135,7 +279,7 @@ export default function NewEntryScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
+              contentContainerStyle={{ gap: 12 }}
               style={{ flexGrow: 0 }}
             >
               <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
@@ -149,7 +293,7 @@ export default function NewEntryScreen() {
               style={{ fontFamily: 'DMSans_400Regular' }}
               className="text-stone-400 text-xs mt-2"
             >
-              Tip: Use **bold**, *italic*, ## headers, &gt; quotes, - lists
+              {'Tip: Use **bold**, *italic*, ## headers, > quotes, - lists'}
             </Text>
           </Animated.View>
         )}
@@ -207,7 +351,7 @@ export default function NewEntryScreen() {
               <TextInput
                 ref={inputRef}
                 value={content}
-                onChangeText={setContent}
+                onChangeText={handleTextChange}
                 onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                 onFocus={() => setShowFormatBar(true)}
                 placeholder="Start writing..."

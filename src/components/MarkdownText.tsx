@@ -87,8 +87,8 @@ export function MarkdownText({ content, baseStyle }: MarkdownTextProps) {
         // Check for unordered lists
         if (line.startsWith('- ') || line.startsWith('* ')) {
           return (
-            <View key={lineIndex} style={{ flexDirection: 'row', marginVertical: 2, paddingLeft: 4 }}>
-              <Text style={{ fontFamily: 'DMSans_400Regular', fontSize: 16, color: '#C4775A', marginRight: 8 }}>•</Text>
+            <View key={lineIndex} style={{ flexDirection: 'row', marginVertical: 2, paddingLeft: 8, alignItems: 'flex-start' }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#78716C', marginTop: 10, marginRight: 12 }} />
               <Text
                 style={[
                   { fontFamily: 'DMSans_400Regular', fontSize: 16, color: '#44403C', lineHeight: 26, flex: 1 },
