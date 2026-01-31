@@ -10,7 +10,9 @@ import { useEffect } from 'react';
 import {
   useFonts,
   CormorantGaramond_400Regular,
+  CormorantGaramond_400Regular_Italic,
   CormorantGaramond_500Medium,
+  CormorantGaramond_500Medium_Italic,
   CormorantGaramond_600SemiBold,
 } from '@expo-google-fonts/cormorant-garamond';
 import {
@@ -87,6 +89,13 @@ function RootLayoutNav() {
             presentation: 'card',
           }}
         />
+        <Stack.Screen
+          name="voice-coach"
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
@@ -97,7 +106,9 @@ export default function RootLayout() {
 
   const [fontsLoaded] = useFonts({
     CormorantGaramond_400Regular,
+    CormorantGaramond_400Regular_Italic,
     CormorantGaramond_500Medium,
+    CormorantGaramond_500Medium_Italic,
     CormorantGaramond_600SemiBold,
     DMSans_400Regular,
     DMSans_500Medium,

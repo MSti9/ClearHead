@@ -111,10 +111,15 @@ A gentle journaling app for people who want to journal but struggle to do it con
 
 ## Design
 
+- **Warm Minimalism** aesthetic inspired by organic editorial design
+- Time-of-day adaptive backgrounds (dawn warmth, afternoon neutrals, evening golden hour, night calm)
 - Warm, neutral color palette (stone, sand, sage, terracotta)
-- Cormorant Garamond serif font for headers (warm, literary feel)
-- DM Sans for body text (clean, readable)
-- Gentle animations throughout
+- Cormorant Garamond serif font for emotional/contextual text (with italics for time context)
+- DM Sans for functional/UI text (clean, readable)
+- Subtle paper texture overlay for tactile feel
+- Gentle breathing orb animation with time-adaptive colors
+- Generous whitespace and breathing room throughout
+- Simplified entry cards (content-focused, minimal badges)
 - Gender-neutral aesthetic
 
 ## Tech Stack
