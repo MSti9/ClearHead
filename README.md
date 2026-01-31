@@ -48,13 +48,19 @@ A gentle journaling app for people who want to journal but struggle to do it con
   - Fixes grammar and run-on sentences
   - Makes entries pleasant and easy to read
   - Preserves original meaning and conversational tone
-- **Coach Follow-Up Questions**: After saving a voice entry, the app may ask a gentle follow-up question
-  - Text-to-speech reads the question aloud (natural, conversational voice)
-  - Rule-based question generation detects themes (stress, work, family, emotions)
-  - Option to record a response or skip
-  - Follow-up responses are appended to the original entry
-  - Appears on ~70% of entries (not pushy)
-  - Can replay, stop, or skip the spoken question
+
+### Voice Coach (NEW)
+- **Conversational AI coaching** for guided journaling
+- Natural-sounding voice using ElevenLabs TTS
+- Time-aware opening questions (morning, afternoon, evening, night)
+- **Continuous conversation loop**:
+  - Coach asks a warm opening question
+  - User records their response
+  - Coach acknowledges and asks a follow-up question
+  - User can continue or wrap up anytime
+- Genuine, non-preachy coaching style (like talking to a thoughtful friend)
+- Full conversation saved as a single journal entry
+- Access via "Chat with Coach" button on home screen
 
 ### Prompt Library
 - 6 categories of thoughtful prompts:
@@ -119,4 +125,6 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - AsyncStorage for persistence
 - React Native Reanimated for animations
 - Expo AV for audio recording
+- ElevenLabs for natural voice synthesis
 - NativeWind (Tailwind) for styling
+- Haptic feedback throughout the app
