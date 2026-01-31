@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, Keyboard, Modal, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
+import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered, Type } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
@@ -13,6 +13,33 @@ interface SelectionState {
   end: number;
 }
 
+// Font options that match the warm, editorial vibe
+const FONT_OPTIONS = [
+  {
+    id: 'sans',
+    label: 'Sans',
+    fontFamily: 'DMSans_400Regular',
+    preview: 'Aa',
+    description: 'Clean & modern'
+  },
+  {
+    id: 'serif',
+    label: 'Serif',
+    fontFamily: 'CormorantGaramond_400Regular',
+    preview: 'Aa',
+    description: 'Literary & warm'
+  },
+  {
+    id: 'classic',
+    label: 'Classic',
+    fontFamily: 'Merriweather_400Regular',
+    preview: 'Aa',
+    description: 'Timeless & readable'
+  },
+] as const;
+
+type FontId = typeof FONT_OPTIONS[number]['id'];
+
 export default function NewEntryScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ prompt?: string }>();
@@ -21,7 +48,11 @@ export default function NewEntryScreen() {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [selection, setSelection] = useState<SelectionState>({ start: 0, end: 0 });
   const [showFormatBar, setShowFormatBar] = useState(false);
+  const [showFontPicker, setShowFontPicker] = useState(false);
+  const [selectedFont, setSelectedFont] = useState<FontId>('sans');
   const inputRef = useRef<TextInput>(null);
+
+  const currentFont = FONT_OPTIONS.find(f => f.id === selectedFont) ?? FONT_OPTIONS[0];
 
   const promptText = params.prompt || null;
   const hasContent = content.trim().length > 0;
@@ -341,9 +372,9 @@ export default function NewEntryScreen() {
                 textAlignVertical="top"
                 style={{
                   flex: 1,
-                  fontFamily: 'DMSans_400Regular',
-                  fontSize: 16,
-                  lineHeight: 26,
+                  fontFamily: currentFont.fontFamily,
+                  fontSize: selectedFont === 'serif' ? 18 : 16,
+                  lineHeight: selectedFont === 'serif' ? 30 : 26,
                   color: '#44403C',
                   minHeight: 200,
                 }}
@@ -375,12 +406,65 @@ export default function NewEntryScreen() {
             className="px-6 pb-4 pt-3 border-t border-stone-200"
             style={{ backgroundColor: '#FAF8F5' }}
           >
+            {/* Font Picker Row */}
+            {showFontPicker && (
+              <Animated.View
+                entering={FadeInUp.duration(150)}
+                className="flex-row gap-3 mb-3"
+              >
+                {FONT_OPTIONS.map((font) => (
+                  <Pressable
+                    key={font.id}
+                    onPress={() => {
+                      Haptics.selection();
+                      setSelectedFont(font.id);
+                    }}
+                    className="flex-1 py-3 px-3 rounded-xl items-center"
+                    style={{
+                      backgroundColor: selectedFont === font.id ? '#E8E4DE' : '#F5F2EE',
+                      borderWidth: selectedFont === font.id ? 1 : 0,
+                      borderColor: '#C9C4BC',
+                    }}
+                  >
+                    <Text
+                      style={{ fontFamily: font.fontFamily }}
+                      className="text-xl text-stone-700 mb-1"
+                    >
+                      {font.preview}
+                    </Text>
+                    <Text
+                      style={{ fontFamily: 'DMSans_500Medium' }}
+                      className="text-xs text-stone-500"
+                    >
+                      {font.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </Animated.View>
+            )}
+
+            {/* Format Buttons Row */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 12 }}
               style={{ flexGrow: 0 }}
             >
+              {/* Font Picker Toggle */}
+              <Pressable
+                onPress={() => {
+                  Haptics.lightTap();
+                  setShowFontPicker(!showFontPicker);
+                }}
+                className="w-12 h-12 rounded-xl items-center justify-center"
+                style={{ backgroundColor: showFontPicker ? '#E8E4DE' : '#F5F2EE' }}
+                accessibilityLabel="Change font"
+              >
+                <Type size={22} color={showFontPicker ? '#5C5650' : '#78716C'} strokeWidth={2} />
+              </Pressable>
+
+              <View className="w-px h-8 bg-stone-200 self-center" />
+
               <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
               <FormatButton icon={Italic} onPress={() => handleFormat('italic')} label="Italic" />
               <FormatButton icon={Heading2} onPress={() => handleFormat('header')} label="Heading" />

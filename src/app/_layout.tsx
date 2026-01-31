@@ -20,6 +20,9 @@ import {
   DMSans_500Medium,
   DMSans_600SemiBold,
 } from '@expo-google-fonts/dm-sans';
+import {
+  Merriweather_400Regular,
+} from '@expo-google-fonts/merriweather';
 import { useJournalStore } from '@/stores/journalStore';
 
 export const unstable_settings = {
@@ -113,6 +116,7 @@ export default function RootLayout() {
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_600SemiBold,
+    Merriweather_400Regular,
   });
 
   useEffect(() => {
