@@ -20,6 +20,7 @@ import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated'
 import { promptCategories, getRandomPrompt, type PromptCategory } from '@/lib/prompts';
 import { generateReflectionPrompts, type ReflectionPrompt } from '@/lib/reflectionPrompts';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -51,10 +52,15 @@ function CategoryCard({ category, index, onPress }: CategoryCardProps) {
   const IconComponent = iconMap[category.icon] || Briefcase;
   const colors = colorMap[category.id] || colorMap.work;
 
+  const handlePress = () => {
+    Haptics.lightTap();
+    onPress();
+  };
+
   return (
     <AnimatedPressable
       entering={FadeInDown.delay(150 + index * 50).springify()}
-      onPress={onPress}
+      onPress={handlePress}
       className="rounded-2xl p-4 mb-3"
       style={{ backgroundColor: colors.bg }}
     >
@@ -92,6 +98,16 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
   const colors = colorMap[category.id] || colorMap.work;
   const IconComponent = iconMap[category.icon] || Briefcase;
 
+  const handleBack = () => {
+    Haptics.lightTap();
+    onBack();
+  };
+
+  const handleSelectPrompt = (prompt: string) => {
+    Haptics.lightTap();
+    onSelectPrompt(prompt);
+  };
+
   return (
     <ScrollView
       className="flex-1"
@@ -125,7 +141,7 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
           </View>
         </LinearGradient>
         <Pressable
-          onPress={onBack}
+          onPress={handleBack}
           className="flex-row items-center"
         >
           <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
@@ -139,7 +155,7 @@ function PromptList({ category, onSelectPrompt, onBack }: PromptListProps) {
         <AnimatedPressable
           key={index}
           entering={FadeInUp.delay(200 + index * 50).springify()}
-          onPress={() => onSelectPrompt(prompt)}
+          onPress={() => handleSelectPrompt(prompt)}
           className="bg-white rounded-2xl p-4 mb-3"
           style={{
             shadowColor: '#2D2A26',
@@ -185,10 +201,12 @@ export default function PromptsScreen() {
   }, [entries.length]);
 
   const handleClose = () => {
+    Haptics.lightTap();
     router.back();
   };
 
   const handleSelectPrompt = (prompt: string) => {
+    Haptics.lightTap();
     router.replace({
       pathname: '/new-entry',
       params: { prompt },
@@ -196,6 +214,7 @@ export default function PromptsScreen() {
   };
 
   const handleRandomPrompt = () => {
+    Haptics.mediumTap();
     const { prompt } = getRandomPrompt();
     router.replace({
       pathname: '/new-entry',
@@ -204,6 +223,7 @@ export default function PromptsScreen() {
   };
 
   const handleViewRelatedEntry = (entryId: string) => {
+    Haptics.lightTap();
     router.push(`/entry/${entryId}`);
   };
 

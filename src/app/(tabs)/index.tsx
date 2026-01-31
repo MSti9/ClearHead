@@ -15,6 +15,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import { analyzePatterns, type JournalInsight } from '@/lib/analyzePatterns';
 import { TAG_CONFIG } from '@/lib/autoTag';
 import { format, isToday, isYesterday, differenceInDays, startOfMonth, isSameMonth } from 'date-fns';
@@ -170,6 +171,7 @@ interface QuickActionProps {
 
 function QuickAction({ icon, label, sublabel, onPress, delay, colors }: QuickActionProps) {
   const handlePress = () => {
+    Haptics.lightTap();
     onPress();
   };
 
@@ -228,6 +230,7 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
   const router = useRouter();
 
   const handlePress = () => {
+    Haptics.lightTap();
     router.push(`/entry/${entry.id}`);
   };
 
@@ -420,7 +423,10 @@ export default function HomeScreen() {
               className="absolute top-4 right-6 z-10"
             >
               <Pressable
-                onPress={() => router.push('/calendar')}
+                onPress={() => {
+                  Haptics.lightTap();
+                  router.push('/calendar');
+                }}
                 className="w-10 h-10 rounded-full bg-white/80 items-center justify-center"
                 style={{
                   shadowColor: '#2D2A26',
@@ -511,6 +517,7 @@ export default function HomeScreen() {
             <AnimatedPressable
               entering={FadeInUp.delay(400).springify()}
               onPress={() => {
+                Haptics.lightTap();
                 router.push('/prompts');
               }}
               className="mt-3 rounded-2xl overflow-hidden"
@@ -563,7 +570,10 @@ export default function HomeScreen() {
                 Recent entries
               </Text>
               {hasMoreEntries && (
-                <Pressable onPress={() => router.push('/entries')}>
+                <Pressable onPress={() => {
+                  Haptics.lightTap();
+                  router.push('/entries');
+                }}>
                   <Text
                     style={{ fontFamily: 'DMSans_500Medium' }}
                     className="text-sm"

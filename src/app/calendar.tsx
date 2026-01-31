@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, ChevronLeft, ChevronRight, Mic, PenLine, Sparkles } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import {
   format,
   startOfMonth,
@@ -43,9 +44,16 @@ function CalendarDay({
   const hasEntries = entries.length > 0;
   const isCurrentDay = isToday(date);
 
+  const handlePress = () => {
+    if (hasEntries) {
+      Haptics.lightTap();
+      onPress();
+    }
+  };
+
   return (
     <Pressable
-      onPress={hasEntries ? onPress : undefined}
+      onPress={handlePress}
       className="flex-1 aspect-square items-center justify-center"
       style={{ minHeight: 44 }}
     >
@@ -97,9 +105,14 @@ function EntryPreviewCard({ entry }: { entry: DayEntry }) {
   const TypeIcon = entry.type === 'voice' ? Mic : entry.type === 'prompted' ? Sparkles : PenLine;
   const typeColor = entry.type === 'voice' ? '#D97706' : entry.type === 'prompted' ? '#7C8B75' : '#9C9690';
 
+  const handlePress = () => {
+    Haptics.lightTap();
+    router.push(`/entry/${entry.id}`);
+  };
+
   return (
     <Pressable
-      onPress={() => router.push(`/entry/${entry.id}`)}
+      onPress={handlePress}
       className="bg-white rounded-2xl p-4 mb-2"
       style={{
         shadowColor: '#2D2A26',
@@ -204,11 +217,13 @@ export default function CalendarScreen() {
   }, [currentMonth, entriesByDate]);
 
   const handlePrevMonth = () => {
+    Haptics.lightTap();
     setCurrentMonth(subMonths(currentMonth, 1));
     setSelectedDate(null);
   };
 
   const handleNextMonth = () => {
+    Haptics.lightTap();
     setCurrentMonth(addMonths(currentMonth, 1));
     setSelectedDate(null);
   };
@@ -223,7 +238,10 @@ export default function CalendarScreen() {
         {/* Header */}
         <View className="flex-row items-center px-6 py-4">
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => {
+              Haptics.lightTap();
+              router.back();
+            }}
             className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center mr-4"
           >
             <ArrowLeft size={20} color="#78716C" strokeWidth={2} />

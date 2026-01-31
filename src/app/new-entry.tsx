@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import { insertFormatting } from '@/components/MarkdownText';
 
 interface SelectionState {
@@ -177,6 +178,7 @@ export default function NewEntryScreen() {
   }, []);
 
   const handleClose = () => {
+    Haptics.lightTap();
     Keyboard.dismiss();
     // If there's content, show confirmation modal
     if (hasContent) {
@@ -187,6 +189,7 @@ export default function NewEntryScreen() {
   };
 
   const handleConfirmDiscard = () => {
+    Haptics.warning();
     setShowDiscardModal(false);
     router.back();
   };
@@ -194,6 +197,7 @@ export default function NewEntryScreen() {
   const handleSave = () => {
     if (!hasContent) return;
 
+    Haptics.success();
     addEntry({
       content: content.trim(),
       type: promptText ? 'prompted' : 'text',
@@ -203,6 +207,7 @@ export default function NewEntryScreen() {
   };
 
   const handleFormat = (format: 'bold' | 'italic' | 'header' | 'quote' | 'list' | 'numbered') => {
+    Haptics.selection();
     const { newText, newCursorPosition } = insertFormatting(
       content,
       selection.start,
@@ -423,7 +428,10 @@ export default function NewEntryScreen() {
 
             <View className="gap-3">
               <Pressable
-                onPress={() => setShowDiscardModal(false)}
+                onPress={() => {
+                  Haptics.lightTap();
+                  setShowDiscardModal(false);
+                }}
                 className="py-3.5 rounded-2xl bg-stone-100"
               >
                 <Text

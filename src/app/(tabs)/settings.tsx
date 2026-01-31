@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield, User, Edit3 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { exportAsText, exportYearInReview } from '@/lib/exportJournal';
 import { scheduleReminders, requestNotificationPermissions, areNotificationsEnabled } from '@/lib/notifications';
@@ -58,9 +59,16 @@ function SettingsRow({
   onPress?: () => void;
   isLast?: boolean;
 }) {
+  const handlePress = () => {
+    if (onPress) {
+      Haptics.lightTap();
+      onPress();
+    }
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={!onPress}
       className="flex-row items-center px-4 py-3.5"
       style={!isLast ? { borderBottomWidth: 1, borderBottomColor: '#F5F2EE' } : undefined}
@@ -106,6 +114,7 @@ export default function SettingsScreen() {
   }, [reminderSettings]);
 
   const handleToggleReminders = async (value: boolean) => {
+    Haptics.selection();
     if (value) {
       // Request permission when enabling
       const granted = await requestNotificationPermissions();
@@ -124,10 +133,12 @@ export default function SettingsScreen() {
   };
 
   const handleToggleGentleNudge = (value: boolean) => {
+    Haptics.selection();
     setReminderSettings({ gentleNudge: value });
   };
 
   const handleDayToggle = (dayIndex: number) => {
+    Haptics.selection();
     const newDays = reminderSettings.days.includes(dayIndex)
       ? reminderSettings.days.filter((d) => d !== dayIndex)
       : [...reminderSettings.days, dayIndex].sort();
@@ -198,6 +209,7 @@ export default function SettingsScreen() {
   };
 
   const handleClearData = () => {
+    Haptics.warning();
     Alert.alert(
       'Clear All Entries',
       'This will permanently delete all your journal entries. This cannot be undone.',
@@ -215,11 +227,13 @@ export default function SettingsScreen() {
   };
 
   const handleSaveName = () => {
+    Haptics.success();
     setUserName(tempName.trim());
     setShowNameModal(false);
   };
 
   const handleOpenNameModal = () => {
+    Haptics.lightTap();
     setTempName(userName || '');
     setShowNameModal(true);
   };
@@ -466,7 +480,10 @@ export default function SettingsScreen() {
         >
           <Pressable
             className="flex-1 bg-black/50 items-center justify-center px-8"
-            onPress={() => setShowNameModal(false)}
+            onPress={() => {
+              Haptics.lightTap();
+              setShowNameModal(false);
+            }}
           >
             <Pressable
               className="bg-white rounded-3xl p-6 w-full max-w-sm"
@@ -526,7 +543,10 @@ export default function SettingsScreen() {
                 </Pressable>
 
                 <Pressable
-                  onPress={() => setShowNameModal(false)}
+                  onPress={() => {
+                    Haptics.lightTap();
+                    setShowNameModal(false);
+                  }}
                   className="py-3.5 rounded-2xl bg-stone-100"
                 >
                   <Text

@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import { ttsService } from '@/lib/ttsService';
 import { generateFollowUpQuestion, shouldShowFollowUp } from '@/lib/coachFollowUp';
 import { formatTranscription } from '@/lib/formatTranscription';
@@ -189,6 +190,7 @@ export default function RecordScreen() {
 
   const startRecording = async () => {
     try {
+      Haptics.mediumTap();
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
         console.log('Permission not granted');
@@ -219,6 +221,7 @@ export default function RecordScreen() {
 
   const pauseRecording = async () => {
     if (recordingRef.current) {
+      Haptics.lightTap();
       if (isPaused) {
         await recordingRef.current.startAsync();
         timerRef.current = setInterval(() => {
@@ -236,6 +239,7 @@ export default function RecordScreen() {
 
   const stopRecording = async () => {
     if (recordingRef.current) {
+      Haptics.mediumTap();
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -250,6 +254,7 @@ export default function RecordScreen() {
   const saveRecording = async () => {
     if (!recordingUri) return;
 
+    Haptics.lightTap();
     setIsTranscribing(true);
 
     try {
@@ -275,6 +280,7 @@ export default function RecordScreen() {
           type: 'voice',
           voiceDuration: duration,
         });
+        Haptics.success();
 
         // Store the entry ID for potential follow-up
         const entryId = entries[entries.length - 1]?.id || Date.now().toString();
@@ -331,10 +337,12 @@ export default function RecordScreen() {
   };
 
   const handleClose = () => {
+    Haptics.lightTap();
     router.back();
   };
 
   const handleReRecord = () => {
+    Haptics.lightTap();
     setDuration(0);
     setHasRecorded(false);
     setRecordingUri(null);
@@ -346,12 +354,14 @@ export default function RecordScreen() {
   };
 
   const handleSkipFollowUp = async () => {
+    Haptics.lightTap();
     await ttsService.stop();
     setShowFollowUp(false);
     router.back();
   };
 
   const handleRespondToFollowUp = async () => {
+    Haptics.mediumTap();
     await ttsService.stop();
     setIsFollowUpResponse(true);
     setShowFollowUp(false);
@@ -362,6 +372,7 @@ export default function RecordScreen() {
   };
 
   const handleToggleSpeech = async () => {
+    Haptics.lightTap();
     if (isSpeaking) {
       await ttsService.stop();
       setIsSpeaking(false);

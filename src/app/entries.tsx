@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Mic, PenLine, Sparkles, X, Filter } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import { TAG_CONFIG, getTagStats } from '@/lib/autoTag';
 import { format, isToday, isYesterday, isSameMonth, isSameYear } from 'date-fns';
 
@@ -42,6 +43,7 @@ function EntryItem({ entry, index }: EntryItemProps) {
   const router = useRouter();
 
   const handlePress = () => {
+    Haptics.lightTap();
     router.push(`/entry/${entry.id}`);
   };
 
@@ -162,7 +164,10 @@ export default function EntriesScreen() {
         {/* Header */}
         <View className="flex-row items-center px-6 py-4">
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => {
+              Haptics.lightTap();
+              router.back();
+            }}
             className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center mr-4"
           >
             <ArrowLeft size={20} color="#78716C" strokeWidth={2} />
@@ -196,7 +201,10 @@ export default function EntriesScreen() {
             >
               {/* All entries button */}
               <Pressable
-                onPress={() => setSelectedTag(null)}
+                onPress={() => {
+                  Haptics.selection();
+                  setSelectedTag(null);
+                }}
                 className="flex-row items-center px-3 py-2 rounded-full"
                 style={{
                   backgroundColor: !selectedTag ? '#2D2A26' : '#F5F2EE',
@@ -224,7 +232,10 @@ export default function EntriesScreen() {
                 return (
                   <Pressable
                     key={tag}
-                    onPress={() => setSelectedTag(isSelected ? null : tag)}
+                    onPress={() => {
+                      Haptics.selection();
+                      setSelectedTag(isSelected ? null : tag);
+                    }}
                     className="flex-row items-center px-3 py-2 rounded-full"
                     style={{
                       backgroundColor: isSelected ? config.color : config.bgColor,
@@ -260,7 +271,10 @@ export default function EntriesScreen() {
         {selectedTag && (
           <View className="px-6 mb-3">
             <Pressable
-              onPress={() => setSelectedTag(null)}
+              onPress={() => {
+                Haptics.lightTap();
+                setSelectedTag(null);
+              }}
               className="flex-row items-center self-start bg-stone-100 px-3 py-1.5 rounded-full"
             >
               <X size={14} color="#78716C" strokeWidth={2} />

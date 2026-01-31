@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Trash2, Edit3, Check, X, Bold, Italic, Heading2, Quote, List, ListOrdered } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
+import * as Haptics from '@/lib/haptics';
 import { format } from 'date-fns';
 import { MarkdownText, insertFormatting } from '@/components/MarkdownText';
 import { TAG_CONFIG } from '@/lib/autoTag';
@@ -35,23 +36,28 @@ export default function EntryDetailScreen() {
   }
 
   const handleBack = () => {
+    Haptics.lightTap();
     router.back();
   };
 
   const handleDelete = () => {
+    Haptics.warning();
     setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
+    Haptics.heavyTap();
     deleteEntry(entry.id);
     router.back();
   };
 
   const handleEdit = () => {
+    Haptics.lightTap();
     setIsEditing(true);
   };
 
   const handleFormat = (format: 'bold' | 'italic' | 'header' | 'quote' | 'list' | 'numbered') => {
+    Haptics.selection();
     const { newText, newCursorPosition } = insertFormatting(
       editedContent,
       selection.start,
@@ -203,11 +209,13 @@ export default function EntryDetailScreen() {
 
   const handleSaveEdit = () => {
     if (editedContent.trim().length === 0) return;
+    Haptics.success();
     updateEntry(entry.id, { content: editedContent.trim() });
     setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
+    Haptics.lightTap();
     setEditedContent(entry.content);
     setIsEditing(false);
   };
@@ -484,7 +492,10 @@ export default function EntryDetailScreen() {
 
               <View className="gap-3">
                 <Pressable
-                  onPress={() => setShowDeleteModal(false)}
+                  onPress={() => {
+                    Haptics.lightTap();
+                    setShowDeleteModal(false);
+                  }}
                   className="py-3.5 rounded-2xl bg-stone-100"
                 >
                   <Text
