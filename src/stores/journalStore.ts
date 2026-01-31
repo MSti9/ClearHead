@@ -30,6 +30,7 @@ interface JournalState {
   lastEntryDate: string | null;
   streak: number;
   isLoading: boolean;
+  isHydrated: boolean;
   userName: string | null;
 
   // Actions
@@ -57,6 +58,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   lastEntryDate: null,
   streak: 0,
   isLoading: true,
+  isHydrated: false,
   userName: null,
 
   addEntry: (entry) => {
@@ -146,13 +148,14 @@ export const useJournalStore = create<JournalState>((set, get) => ({
           streak: parsed.streak || 0,
           userName: parsed.userName || null,
           isLoading: false,
+          isHydrated: true,
         });
       } else {
-        set({ isLoading: false });
+        set({ isLoading: false, isHydrated: true });
       }
     } catch (error) {
       console.error('Failed to load journal data:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, isHydrated: true });
     }
   },
 

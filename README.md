@@ -7,12 +7,19 @@ A gentle journaling app for people who want to journal but struggle to do it con
 ## Features
 
 ### Home Dashboard
-- Time-aware greetings that change throughout the day
+- Personalized greeting using your name ("Hey, Sarah")
+- Time-aware context lines that change throughout the day
 - Breathing orb animation for a calming presence
 - Quick access to voice recording and text journaling
 - Browse prompts when you do not know where to start
 - View recent journal entries (5 most recent with "View all" link)
 - Calendar button to view journaling history
+
+### First-Time Welcome
+- Simple, no-fuss onboarding - just asks your name
+- No multi-step tutorials or feature tours
+- Immediately drops you into the journal
+- Name used for warm, personal greetings every time you return
 
 ### Calendar View
 - Monthly calendar showing which days you journaled
