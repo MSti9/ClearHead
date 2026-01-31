@@ -408,7 +408,7 @@ export default function VoiceCoachScreen() {
             <X size={20} color="#78716C" strokeWidth={2} />
           </Pressable>
           <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
-            Voice Coach
+            Talk it Through
           </Text>
           <View className="w-10" />
         </Animated.View>

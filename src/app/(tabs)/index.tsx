@@ -585,7 +585,7 @@ export default function HomeScreen() {
                       style={{ fontFamily: 'DMSans_600SemiBold' }}
                       className="text-stone-700 text-base"
                     >
-                      Chat with Coach
+                      Talk it Through
                     </Text>
                     <Text
                       style={{ fontFamily: 'DMSans_400Regular' }}
