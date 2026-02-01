@@ -24,6 +24,7 @@ import {
   Merriweather_400Regular,
 } from '@expo-google-fonts/merriweather';
 import { useJournalStore } from '@/stores/journalStore';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
@@ -126,6 +127,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const loadFromStorage = useJournalStore((s) => s.loadFromStorage);
+  const isHydrated = useJournalStore((s) => s.isHydrated);
 
   const [fontsLoaded] = useFonts({
     CormorantGaramond_400Regular,
@@ -144,12 +146,16 @@ export default function RootLayout() {
   }, [loadFromStorage]);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && isHydrated) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, isHydrated]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !isHydrated) {
+    // Show our branded loading screen while fonts load and store hydrates
+    if (fontsLoaded) {
+      return <LoadingScreen />;
+    }
     return null;
   }
 

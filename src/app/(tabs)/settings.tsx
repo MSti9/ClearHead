@@ -8,6 +8,7 @@ import * as Haptics from '@/lib/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { exportAsText, exportYearInReview } from '@/lib/exportJournal';
 import { scheduleReminders, requestNotificationPermissions, areNotificationsEnabled } from '@/lib/notifications';
+import { BrainLogo } from '@/components/BrainLogo';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -447,13 +448,21 @@ export default function SettingsScreen() {
           {/* About Section */}
           <SettingsSection title="About" delay={300}>
             <View className="px-4 py-4">
-              <Text
-                style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                className="text-stone-600 text-lg mb-2"
-              >
-                Clearhead
-              </Text>
-              <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm leading-5">
+              <View className="flex-row items-center mb-3">
+                <BrainLogo size={44} showBackground={true} />
+                <View className="ml-3">
+                  <Text
+                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                    className="text-stone-800 text-xl"
+                  >
+                    Clearhead
+                  </Text>
+                  <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-xs">
+                    Version 1.0.0
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-500 text-sm leading-5 mt-2">
                 A journaling app for people who want to journal but have not done it consistently.
                 No pressure, no streaks to maintain. Just a calm space to clear your head whenever
                 you need it.

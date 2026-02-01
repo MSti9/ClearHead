@@ -118,6 +118,7 @@ A gentle journaling app for people who want to journal but struggle to do it con
 
 ## Design
 
+- **Brain logo** — distinctive, memorable branding throughout the app
 - **Warm Minimalism** aesthetic inspired by organic editorial design
 - Time-of-day adaptive backgrounds (dawn warmth, afternoon neutrals, evening golden hour, night calm)
 - Warm, neutral color palette (stone, sand, sage, terracotta)
@@ -128,6 +129,7 @@ A gentle journaling app for people who want to journal but struggle to do it con
 - Generous whitespace and breathing room throughout
 - Simplified entry cards (content-focused, minimal badges)
 - Gender-neutral aesthetic
+- Branded loading screen with animated logo
 
 ## Tech Stack
 

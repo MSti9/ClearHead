@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
+import { BrainLogo } from '@/components/BrainLogo';
 
 function WelcomeOrb() {
   const scale = useSharedValue(1);
@@ -116,11 +117,30 @@ export default function WelcomeScreen() {
                 entering={FadeInDown.delay(300).duration(800)}
                 className="items-center"
               >
+                {/* Brain Logo */}
+                <View className="mb-6">
+                  <BrainLogo size={80} showBackground={true} />
+                </View>
+
                 <Text
                   style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                  className="text-4xl text-stone-800 text-center mb-12"
+                  className="text-3xl text-stone-800 text-center mb-2"
                 >
-                  Your name?
+                  Clearhead
+                </Text>
+
+                <Text
+                  style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
+                  className="text-base text-stone-500 text-center mb-10"
+                >
+                  A calm space to clear your mind
+                </Text>
+
+                <Text
+                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                  className="text-2xl text-stone-700 text-center mb-8"
+                >
+                  What's your name?
                 </Text>
 
                 <TextInput
