@@ -112,85 +112,88 @@ export default function WelcomeScreen() {
           >
             <WelcomeOrb />
 
-            <View className="flex-1 justify-center px-8 pt-20">
+            <View className="flex-1 px-8">
+              <View className="flex-1 justify-center">
+                <Animated.View
+                  entering={FadeInDown.delay(300).duration(800)}
+                  className="items-center"
+                >
+                  {/* Brain Logo */}
+                  <View className="mb-6">
+                    <BrainLogo size={90} showBackground={false} />
+                  </View>
+
+                  <Text
+                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                    className="text-3xl text-stone-800 text-center mb-2"
+                  >
+                    ClearHead
+                  </Text>
+
+                  <Text
+                    style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
+                    className="text-base text-stone-500 text-center mb-10"
+                  >
+                    A calm space to clear your mind
+                  </Text>
+
+                  <Text
+                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                    className="text-2xl text-stone-700 text-center mb-8"
+                  >
+                    What's your name?
+                  </Text>
+
+                  <TextInput
+                    ref={inputRef}
+                    value={name}
+                    onChangeText={setName}
+                    onSubmitEditing={handleContinue}
+                    placeholder=""
+                    placeholderTextColor="#C9C4BC"
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                    style={{
+                      fontFamily: 'CormorantGaramond_500Medium',
+                      fontSize: 32,
+                      color: '#44403C',
+                      textAlign: 'center',
+                      width: '100%',
+                      paddingVertical: 16,
+                      borderBottomWidth: 1,
+                      borderBottomColor: '#E8E4DE',
+                      marginBottom: 32,
+                    }}
+                  />
+                </Animated.View>
+              </View>
+
+              {/* Continue button */}
               <Animated.View
-                entering={FadeInDown.delay(300).duration(800)}
-                className="items-center"
+                entering={FadeIn.delay(600).duration(500)}
+                className="pb-8"
               >
-                {/* Brain Logo */}
-                <View className="mb-6">
-                  <BrainLogo size={90} showBackground={false} />
-                </View>
-
-                <Text
-                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                  className="text-3xl text-stone-800 text-center mb-2"
-                >
-                  ClearHead
-                </Text>
-
-                <Text
-                  style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-                  className="text-base text-stone-500 text-center mb-10"
-                >
-                  A calm space to clear your mind
-                </Text>
-
-                <Text
-                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                  className="text-2xl text-stone-700 text-center mb-8"
-                >
-                  What's your name?
-                </Text>
-
-                <TextInput
-                  ref={inputRef}
-                  value={name}
-                  onChangeText={setName}
-                  onSubmitEditing={handleContinue}
-                  placeholder=""
-                  placeholderTextColor="#C9C4BC"
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  returnKeyType="done"
+                <Pressable
+                  onPress={handleContinue}
+                  disabled={!canContinue}
+                  className="py-4 rounded-2xl items-center"
                   style={{
-                    fontFamily: 'CormorantGaramond_500Medium',
-                    fontSize: 32,
-                    color: '#44403C',
-                    textAlign: 'center',
-                    width: '100%',
-                    paddingVertical: 16,
-                    borderBottomWidth: 1,
-                    borderBottomColor: '#E8E4DE',
+                    backgroundColor: canContinue ? '#7C8B75' : '#E8E4DE',
                   }}
-                />
+                >
+                  <Text
+                    style={{ fontFamily: 'DMSans_500Medium' }}
+                    className="text-base"
+                    selectable={false}
+                  >
+                    <Text style={{ color: canContinue ? 'white' : '#9C9690' }}>
+                      Continue
+                    </Text>
+                  </Text>
+                </Pressable>
               </Animated.View>
             </View>
-
-            {/* Continue button */}
-            <Animated.View
-              entering={FadeIn.delay(600).duration(500)}
-              className="px-8 pb-8"
-            >
-              <Pressable
-                onPress={handleContinue}
-                disabled={!canContinue}
-                className="py-4 rounded-2xl items-center"
-                style={{
-                  backgroundColor: canContinue ? '#7C8B75' : '#E8E4DE',
-                }}
-              >
-                <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-base"
-                  selectable={false}
-                >
-                  <Text style={{ color: canContinue ? 'white' : '#9C9690' }}>
-                    Continue
-                  </Text>
-                </Text>
-              </Pressable>
-            </Animated.View>
           </Pressable>
         </SafeAreaView>
       </LinearGradient>
