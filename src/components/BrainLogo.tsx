@@ -8,7 +8,7 @@ interface BrainLogoProps {
 }
 
 export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) {
-  const imageSize = showBackground ? size * 0.7 : size;
+  const imageSize = showBackground ? size * 1.2 : size;
 
   if (!showBackground) {
     return (
