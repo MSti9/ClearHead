@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Brain } from 'lucide-react-native';
 
 interface BrainLogoProps {
   size?: number;
@@ -8,19 +9,10 @@ interface BrainLogoProps {
 }
 
 export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) {
-  const imageSize = showBackground ? size * 0.6 : size;
+  const iconSize = showBackground ? size * 0.55 : size;
 
   if (!showBackground) {
-    return (
-      <Image
-        source={require('../../public/gemini-generated-image-mz5w69mz5w69mz5w.png')}
-        style={{
-          width: imageSize,
-          height: imageSize,
-        }}
-        resizeMode="contain"
-      />
-    );
+    return <Brain size={iconSize} color="#8B7355" strokeWidth={1.5} />;
   }
 
   return (
@@ -43,14 +35,7 @@ export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) 
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <Image
-          source={require('../../public/gemini-generated-image-mz5w69mz5w69mz5w.png')}
-          style={{
-            width: imageSize,
-            height: imageSize,
-          }}
-          resizeMode="contain"
-        />
+        <Brain size={iconSize} color="#8B7355" strokeWidth={1.5} />
       </LinearGradient>
     </View>
   );
