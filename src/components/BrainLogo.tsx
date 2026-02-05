@@ -13,7 +13,7 @@ export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) 
   if (!showBackground) {
     return (
       <Image
-        source={require('../../public/gemini-generated-image-9kxj6h9kxj6h9kxj.png')}
+        source={require('../../public/image-1.png')}
         style={{
           width: imageSize,
           height: imageSize,
@@ -44,7 +44,7 @@ export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) 
         end={{ x: 1, y: 1 }}
       >
         <Image
-          source={require('../../public/gemini-generated-image-9kxj6h9kxj6h9kxj.png')}
+          source={require('../../public/image-1.png')}
           style={{
             width: imageSize,
             height: imageSize,
