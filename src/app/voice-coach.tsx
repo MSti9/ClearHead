@@ -338,7 +338,7 @@ export default function VoiceCoachScreen() {
     // Save the conversation as a journal entry
     if (conversation.length > 1) {
       const entryContent = conversation
-        .map((m) => (m.role === 'coach' ? `**Coach:** ${m.content}` : m.content))
+        .map((m) => (m.role === 'coach' ? `**ClearHead:** ${m.content}` : m.content))
         .join('\n\n');
 
       addEntry({
