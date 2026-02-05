@@ -37,6 +37,7 @@ interface JournalState {
   addEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateEntry: (id: string, updates: Partial<JournalEntry>) => void;
   deleteEntry: (id: string) => void;
+  clearAllEntries: () => void;
   setReminderSettings: (settings: Partial<ReminderSettings>) => void;
   setUserName: (name: string) => void;
   loadFromStorage: () => Promise<void>;
@@ -121,6 +122,15 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     set((state) => ({
       entries: state.entries.filter((entry) => entry.id !== id),
     }));
+    get().saveToStorage();
+  },
+
+  clearAllEntries: () => {
+    set({
+      entries: [],
+      lastEntryDate: null,
+      streak: 0,
+    });
     get().saveToStorage();
   },
 

@@ -98,6 +98,7 @@ export default function SettingsScreen() {
   const userName = useJournalStore((s) => s.userName);
   const setUserName = useJournalStore((s) => s.setUserName);
   const entries = useJournalStore((s) => s.entries);
+  const clearAllEntries = useJournalStore((s) => s.clearAllEntries);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [notificationsAllowed, setNotificationsAllowed] = useState<boolean | null>(null);
@@ -220,7 +221,8 @@ export default function SettingsScreen() {
           text: 'Delete All',
           style: 'destructive',
           onPress: () => {
-            // Clear entries logic would go here
+            Haptics.success();
+            clearAllEntries();
           },
         },
       ]
