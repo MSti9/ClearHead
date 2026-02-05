@@ -126,7 +126,7 @@ export default function WelcomeScreen() {
                   style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
                   className="text-3xl text-stone-800 text-center mb-2"
                 >
-                  Clearhead
+                  ClearHead
                 </Text>
 
                 <Text
