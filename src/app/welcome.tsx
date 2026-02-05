@@ -112,15 +112,17 @@ export default function WelcomeScreen() {
           >
             <WelcomeOrb />
 
-            <View className="flex-1 px-8">
+            {/* Main content container with proper spacing */}
+            <View className="flex-1 justify-between px-8 pt-12 pb-8">
+              {/* Top section - all form content */}
               <View className="flex-1 justify-center">
                 <Animated.View
                   entering={FadeInDown.delay(300).duration(800)}
                   className="items-center"
                 >
                   {/* Brain Logo */}
-                  <View className="mb-6">
-                    <BrainLogo size={90} showBackground={false} />
+                  <View className="mb-4">
+                    <BrainLogo size={80} showBackground={false} />
                   </View>
 
                   <Text
@@ -132,14 +134,14 @@ export default function WelcomeScreen() {
 
                   <Text
                     style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-                    className="text-base text-stone-500 text-center mb-10"
+                    className="text-base text-stone-500 text-center mb-8"
                   >
                     A calm space to clear your mind
                   </Text>
 
                   <Text
                     style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                    className="text-2xl text-stone-700 text-center mb-8"
+                    className="text-xl text-stone-700 text-center mb-6"
                   >
                     What's your name?
                   </Text>
@@ -156,24 +158,20 @@ export default function WelcomeScreen() {
                     returnKeyType="done"
                     style={{
                       fontFamily: 'CormorantGaramond_500Medium',
-                      fontSize: 32,
+                      fontSize: 28,
                       color: '#44403C',
                       textAlign: 'center',
                       width: '100%',
-                      paddingVertical: 16,
+                      paddingVertical: 12,
                       borderBottomWidth: 1,
                       borderBottomColor: '#E8E4DE',
-                      marginBottom: 32,
                     }}
                   />
                 </Animated.View>
               </View>
 
-              {/* Continue button */}
-              <Animated.View
-                entering={FadeIn.delay(600).duration(500)}
-                className="pb-8"
-              >
+              {/* Bottom section - Continue button */}
+              <Animated.View entering={FadeIn.delay(600).duration(500)}>
                 <Pressable
                   onPress={handleContinue}
                   disabled={!canContinue}
