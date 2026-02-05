@@ -165,6 +165,7 @@ export default function WelcomeScreen() {
                       paddingVertical: 12,
                       borderBottomWidth: 1,
                       borderBottomColor: '#E8E4DE',
+                      marginBottom: 80,
                     }}
                   />
                 </Animated.View>
