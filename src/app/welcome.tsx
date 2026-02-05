@@ -119,7 +119,7 @@ export default function WelcomeScreen() {
               >
                 {/* Brain Logo */}
                 <View className="mb-8">
-                  <BrainLogo size={160} showBackground={false} />
+                  <BrainLogo size={120} showBackground={false} />
                 </View>
 
                 <Text
