@@ -425,7 +425,7 @@ export default function SettingsScreen() {
               <Pressable
                 onPress={() => {
                   Haptics.lightTap();
-                  Linking.openURL('https://github.com/[YOUR-USERNAME]/clearhead/blob/main/PRIVACY.md');
+                  Linking.openURL('https://github.com/MSti9/clearhead/blob/main/PRIVACY.md');
                 }}
                 className="flex-row items-center justify-between bg-stone-50 rounded-xl px-3 py-2.5"
               >

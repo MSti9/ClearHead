@@ -72,7 +72,7 @@ We may update this privacy policy from time to time. We will notify you of any c
 
 If you have questions about this privacy policy or how ClearHead handles your data, please contact us at:
 
-**Email:** [Your email address here]
+**Email:** michael.p.stieren@gmail.com
 
 ---
 
