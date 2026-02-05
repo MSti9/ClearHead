@@ -20,6 +20,10 @@ const REMINDER_NOTIFICATION_ID = 'journal_daily_reminder';
  * Request permission to send notifications
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
+  if (Platform.OS === 'web') {
+    return false;
+  }
+
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
 
   let finalStatus = existingStatus;
@@ -42,6 +46,10 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  * Check if notifications are enabled
  */
 export async function areNotificationsEnabled(): Promise<boolean> {
+  if (Platform.OS === 'web') {
+    return false;
+  }
+
   const { status } = await Notifications.getPermissionsAsync();
   return status === 'granted';
 }
@@ -50,6 +58,11 @@ export async function areNotificationsEnabled(): Promise<boolean> {
  * Schedule daily journal reminders based on settings
  */
 export async function scheduleReminders(settings: ReminderSettings): Promise<void> {
+  // Web doesn't support notifications
+  if (Platform.OS === 'web') {
+    return;
+  }
+
   // Cancel existing reminders first
   await cancelReminders();
 
@@ -110,6 +123,10 @@ export async function scheduleReminders(settings: ReminderSettings): Promise<voi
  * Cancel all journal reminder notifications
  */
 export async function cancelReminders(): Promise<void> {
+  if (Platform.OS === 'web') {
+    return;
+  }
+
   try {
     // Cancel all scheduled notifications with our prefix
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
@@ -128,6 +145,10 @@ export async function cancelReminders(): Promise<void> {
  * Get status of scheduled reminders
  */
 export async function getScheduledReminders(): Promise<number> {
+  if (Platform.OS === 'web') {
+    return 0;
+  }
+
   try {
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
     return scheduledNotifications.filter((n) =>
