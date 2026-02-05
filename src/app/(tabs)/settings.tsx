@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert, TextInput, Modal } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert, TextInput, Modal, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield, User, Edit3 } from 'lucide-react-native';
+import { Bell, Clock, Calendar, ChevronRight, Trash2, Info, Download, FileText, Sparkles, Shield, User, Edit3, ExternalLink } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
@@ -417,11 +417,23 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <View className="bg-stone-50 rounded-xl p-3 mt-2">
+              <View className="bg-stone-50 rounded-xl p-3 mt-2 mb-3">
                 <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-500 text-xs leading-4">
                   AI features (transcription, insights) send data to OpenAI for processing but entries are never stored on their servers.
                 </Text>
               </View>
+              <Pressable
+                onPress={() => {
+                  Haptics.lightTap();
+                  Linking.openURL('https://github.com/[YOUR-USERNAME]/clearhead/blob/main/PRIVACY.md');
+                }}
+                className="flex-row items-center justify-between bg-stone-50 rounded-xl px-3 py-2.5"
+              >
+                <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-700 text-sm">
+                  Read full privacy policy
+                </Text>
+                <ExternalLink size={14} color="#9C9690" strokeWidth={2} />
+              </Pressable>
             </View>
           </SettingsSection>
 
