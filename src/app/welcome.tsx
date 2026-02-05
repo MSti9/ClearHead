@@ -112,7 +112,7 @@ export default function WelcomeScreen() {
           >
             <WelcomeOrb />
 
-            <View className="flex-1 justify-center px-8">
+            <View className="flex-1 justify-center px-8 pt-20">
               <Animated.View
                 entering={FadeInDown.delay(300).duration(800)}
                 className="items-center"

@@ -8,18 +8,30 @@ interface BrainLogoProps {
 }
 
 export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) {
-  const imageSize = showBackground ? size * 1.2 : size;
+  const imageSize = showBackground ? size * 0.65 : size * 0.65;
 
   if (!showBackground) {
     return (
-      <Image
-        source={require('../../public/image-1.png')}
+      <View
         style={{
-          width: imageSize,
-          height: imageSize,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: '#E8D4C8',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
         }}
-        resizeMode="contain"
-      />
+      >
+        <Image
+          source={require('../../public/image-2.png')}
+          style={{
+            width: imageSize,
+            height: imageSize,
+          }}
+          resizeMode="contain"
+        />
+      </View>
     );
   }
 
@@ -44,7 +56,7 @@ export function BrainLogo({ size = 48, showBackground = true }: BrainLogoProps) 
         end={{ x: 1, y: 1 }}
       >
         <Image
-          source={require('../../public/image-1.png')}
+          source={require('../../public/image-2.png')}
           style={{
             width: imageSize,
             height: imageSize,
