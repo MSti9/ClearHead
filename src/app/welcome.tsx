@@ -118,8 +118,8 @@ export default function WelcomeScreen() {
                 className="items-center"
               >
                 {/* Brain Logo */}
-                <View className="mb-6">
-                  <BrainLogo size={80} showBackground={true} />
+                <View className="mb-8">
+                  <BrainLogo size={160} showBackground={false} />
                 </View>
 
                 <Text
