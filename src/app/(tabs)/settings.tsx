@@ -469,7 +469,7 @@ export default function SettingsScreen() {
                     style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
                     className="text-stone-800 text-xl"
                   >
-                    Clearhead
+                    ClearHead
                   </Text>
                   <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-xs">
                     Version 1.0.0
