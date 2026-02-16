@@ -20,7 +20,7 @@ import Animated, {
 import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
-import { speakWithElevenLabs, stopSpeaking } from '@/lib/elevenLabsTTS';
+import { speak, stopSpeaking } from '@/lib/tts';
 import {
   getOpeningQuestion,
   generateCoachResponse,
@@ -162,7 +162,7 @@ export default function VoiceCoachScreen() {
       setConversation([{ role: 'coach', content: opening }]);
 
       setIsSpeaking(true);
-      await speakWithElevenLabs(
+      await speak(
         opening,
         () => setIsSpeaking(true),
         () => {
@@ -263,7 +263,7 @@ export default function VoiceCoachScreen() {
 
       // Speak the response
       setIsSpeaking(true);
-      await speakWithElevenLabs(
+      await speak(
         fullResponse,
         () => setIsSpeaking(true),
         () => {
@@ -295,7 +295,7 @@ export default function VoiceCoachScreen() {
     setCurrentCoachText(closing);
 
     setIsSpeaking(true);
-    await speakWithElevenLabs(
+    await speak(
       closing,
       () => setIsSpeaking(true),
       () => {

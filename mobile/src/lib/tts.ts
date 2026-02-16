@@ -4,7 +4,7 @@ import { textToSpeech } from '@/lib/apiClient';
 
 let currentSound: Audio.Sound | null = null;
 
-export async function speakWithElevenLabs(
+export async function speak(
   text: string,
   onStart?: () => void,
   onFinish?: () => void,
@@ -22,7 +22,7 @@ export async function speakWithElevenLabs(
 
     onStart?.();
 
-    // Request TTS from backend (API key stays server-side)
+    // Request TTS from backend (OpenAI TTS, API key stays server-side)
     const audioBlob = await textToSpeech({ text });
 
     const fileUri = FileSystem.documentDirectory + `coach_speech_${Date.now()}.mp3`;
@@ -58,7 +58,7 @@ export async function speakWithElevenLabs(
       }
     });
   } catch (error) {
-    console.error('ElevenLabs TTS error:', error);
+    console.error('TTS error:', error);
     onError?.(error instanceof Error ? error : new Error('TTS failed'));
     onFinish?.();
   }

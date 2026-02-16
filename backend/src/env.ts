@@ -12,7 +12,7 @@ const envSchema = z.object({
 
   // API Keys (server-side only — never expose to clients)
   OPENAI_API_KEY: z.string().optional(),
-  ELEVENLABS_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
 });
 
 /**

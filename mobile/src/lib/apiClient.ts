@@ -1,7 +1,12 @@
 /**
  * API client for communicating with the ClearHead backend.
- * All AI API calls (OpenAI, ElevenLabs) are proxied through the backend
- * so that API keys are never exposed in the client bundle.
+ * All AI API calls are proxied through the backend so that
+ * API keys are never exposed in the client bundle.
+ *
+ * Backend providers:
+ *  - Chat completions: Anthropic Claude Sonnet 4.5
+ *  - Transcription: OpenAI Whisper
+ *  - Text-to-speech: OpenAI TTS
  */
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -13,7 +18,6 @@ export async function chatCompletion(params: {
   messages: { role: string; content: string }[];
   temperature?: number;
   max_tokens?: number;
-  model?: string;
 }): Promise<{ content: string | null }> {
   const response = await fetch(`${BACKEND_URL}/api/ai/chat`, {
     method: 'POST',
@@ -56,19 +60,12 @@ export async function transcribeAudio(uri: string): Promise<string> {
 }
 
 /**
- * Proxy a text-to-speech request through the backend.
+ * Proxy a text-to-speech request through the backend (OpenAI TTS).
  * Returns the audio as a blob.
  */
 export async function textToSpeech(params: {
   text: string;
-  voice_id?: string;
-  model_id?: string;
-  voice_settings?: {
-    stability: number;
-    similarity_boost: number;
-    style: number;
-    use_speaker_boost: boolean;
-  };
+  voice?: string;
 }): Promise<Blob> {
   const response = await fetch(`${BACKEND_URL}/api/ai/tts`, {
     method: 'POST',
