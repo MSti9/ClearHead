@@ -45,42 +45,63 @@ aiRouter.post("/transcribe", async (c) => {
 });
 
 // ──────────────────────────────────────────────
-// POST /api/ai/chat — Proxy for OpenAI Chat Completions
+// POST /api/ai/chat — Proxy for Anthropic Claude Sonnet 4.5
 // ──────────────────────────────────────────────
 aiRouter.post("/chat", async (c) => {
   try {
     const body = await c.req.json();
-    const { messages, temperature, max_tokens, model } = body;
+    const { messages, temperature, max_tokens } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return c.json({ error: "messages array is required" }, 400);
     }
 
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: model || "gpt-4o-mini",
-          messages,
-          temperature: temperature ?? 0.7,
-          max_tokens: max_tokens ?? 500,
-        }),
+    // Extract system message (Anthropic uses a separate "system" field)
+    let system: string | undefined;
+    const anthropicMessages: { role: string; content: string }[] = [];
+
+    for (const msg of messages) {
+      if (msg.role === "system") {
+        system = msg.content;
+      } else {
+        anthropicMessages.push({
+          role: msg.role === "assistant" ? "assistant" : "user",
+          content: msg.content,
+        });
       }
-    );
+    }
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY || "",
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: max_tokens ?? 500,
+        temperature: temperature ?? 0.7,
+        ...(system ? { system } : {}),
+        messages: anthropicMessages,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Chat API error:", errorText);
+      console.error("Anthropic API error:", errorText);
       return c.json({ error: "Chat completion failed" }, response.status);
     }
 
     const result = await response.json();
-    return c.json(result);
+
+    // Normalize to OpenAI-compatible format so the mobile client doesn't need changes
+    const content =
+      result.content?.[0]?.type === "text" ? result.content[0].text : null;
+
+    return c.json({
+      choices: [{ message: { content } }],
+    });
   } catch (error) {
     console.error("Chat proxy error:", error);
     return c.json({ error: "Internal server error" }, 500);
@@ -88,41 +109,34 @@ aiRouter.post("/chat", async (c) => {
 });
 
 // ──────────────────────────────────────────────
-// POST /api/ai/tts — Proxy for ElevenLabs Text-to-Speech
+// POST /api/ai/tts — Proxy for OpenAI Text-to-Speech
 // ──────────────────────────────────────────────
 aiRouter.post("/tts", async (c) => {
   try {
     const body = await c.req.json();
-    const { text, voice_id, model_id, voice_settings } = body;
+    const { text, voice } = body;
 
     if (!text) {
       return c.json({ error: "text is required" }, 400);
     }
 
-    const voiceId = voice_id || "21m00Tcm4TlvDq8ikWAM"; // Rachel default
-    const apiUrl = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
-
-    const response = await fetch(apiUrl, {
+    const response = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY || "",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text,
-        model_id: model_id || "eleven_flash_v2_5",
-        voice_settings: voice_settings || {
-          stability: 0.6,
-          similarity_boost: 0.8,
-          style: 0.3,
-          use_speaker_boost: true,
-        },
+        model: "tts-1",
+        input: text,
+        voice: voice || "nova", // nova: warm, friendly female voice
+        response_format: "mp3",
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", errorText);
+      console.error("OpenAI TTS API error:", errorText);
       return c.json({ error: "Text-to-speech failed" }, response.status);
     }
 
