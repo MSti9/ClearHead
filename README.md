@@ -44,9 +44,11 @@ A beautiful mental health journaling app built with React Native and Expo. Clear
 - **Authentication**: Better Auth
 
 ### AI Integrations
-- OpenAI API for text generation
-- ElevenLabs for text-to-speech
+- **Anthropic Claude Sonnet 4.5** for chat and text generation
+- **OpenAI Whisper** for speech-to-text transcription
+- **OpenAI TTS** (Nova voice) for text-to-speech
 - Pattern analysis and auto-tagging
+- All API calls routed through the backend (keys never exposed to client)
 
 ## Project Structure
 
@@ -114,16 +116,14 @@ ClearHead/
 
    **backend/.env:**
    ```env
-   DATABASE_URL="file:./prisma/dev.db"
-   BETTER_AUTH_SECRET="your-secret-key"
-   BETTER_AUTH_URL="http://localhost:3000"
+   PORT=3000
+   OPENAI_API_KEY="your-openai-key"
+   ANTHROPIC_API_KEY="your-anthropic-key"
    ```
 
    **mobile/.env:**
    ```env
-   EXPO_PUBLIC_VIBECODE_BACKEND_URL="http://localhost:3000"
-   EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY="your-openai-key"
-   EXPO_PUBLIC_VIBECODE_ELEVENLABS_API_KEY="your-elevenlabs-key"
+   EXPO_PUBLIC_BACKEND_URL="http://localhost:3000"
    ```
 
 ### Running the App
@@ -156,8 +156,8 @@ ClearHead/
 
 ### Voice Coach
 - Interactive guided reflection sessions
-- AI-powered personalized questions
-- Voice responses with natural TTS
+- AI-powered personalized questions (Claude Sonnet 4.5)
+- Voice responses with OpenAI TTS (Nova voice)
 - Helps users explore their thoughts deeper
 
 ### Pattern Analysis
@@ -172,13 +172,13 @@ ClearHead/
 
 ## API Keys Required
 
-To use all features, you'll need:
-- **OpenAI API Key** - For AI text generation and analysis
-- **ElevenLabs API Key** - For voice synthesis in Voice Coach
+To use all features, you'll need (configured in `backend/.env`):
+- **Anthropic API Key** - For AI chat and text generation (Claude Sonnet 4.5)
+- **OpenAI API Key** - For speech-to-text transcription (Whisper) and text-to-speech (TTS)
 
 Get your keys from:
+- Anthropic: https://console.anthropic.com/
 - OpenAI: https://platform.openai.com/api-keys
-- ElevenLabs: https://elevenlabs.io/
 
 ## Development
 
