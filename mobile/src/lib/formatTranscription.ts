@@ -3,7 +3,7 @@
  * Uses AI to add paragraph breaks, proper punctuation, and improve readability
  */
 
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY;
+import { chatCompletion } from '@/lib/apiClient';
 
 export async function formatTranscription(rawText: string): Promise<string> {
   if (!rawText || rawText.trim().length === 0) {
@@ -16,18 +16,11 @@ export async function formatTranscription(rawText: string): Promise<string> {
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a text formatter for journal entries. Your job is to take voice transcriptions and format them into readable, well-structured text.
+    const result = await chatCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a text formatter for journal entries. Your job is to take voice transcriptions and format them into readable, well-structured text.
 
 Rules:
 1. Break the text into natural paragraphs based on topic/thought changes
@@ -48,25 +41,17 @@ I've been thinking about work lately. It's been really stressful - my boss keeps
 Also, I've been feeling tired all the time. Maybe I need a vacation or something.
 
 I should probably talk to someone about this.`,
-          },
-          {
-            role: 'user',
-            content: rawText,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 2000,
-      }),
+        },
+        {
+          role: 'user',
+          content: rawText,
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 2000,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Formatting API error:', errorText);
-      return rawText; // Return original on error
-    }
-
-    const result = await response.json();
-    const formattedText = result.choices[0]?.message?.content?.trim();
+    const formattedText = result.content?.trim();
 
     if (!formattedText) {
       return rawText;

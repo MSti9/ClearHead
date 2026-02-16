@@ -1,4 +1,5 @@
 import type { JournalEntry } from '@/stores/journalStore';
+import { chatCompletion } from '@/lib/apiClient';
 
 // Predefined tag categories with associated keywords
 const TAG_KEYWORDS: Record<string, string[]> = {
@@ -82,51 +83,39 @@ export async function extractTagsWithAI(content: string): Promise<EntryTags> {
   // First get basic tags from keywords
   const basicTags = extractTagsFromContent(content);
 
-  const apiKey = process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY;
-  if (!apiKey || content.length < 50) {
+  if (content.length < 50) {
     return basicTags;
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You analyze journal entries and extract theme tags. Return ONLY valid JSON.
+    const result = await chatCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: `You analyze journal entries and extract theme tags. Return ONLY valid JSON.
 Available themes: work, family, relationships, health, stress, grief, joy, gratitude, growth, money, faith, creativity
 Sentiment options: positive, negative, neutral, mixed`,
-          },
-          {
-            role: 'user',
-            content: `Analyze this journal entry and return JSON with themes array and sentiment:
+        },
+        {
+          role: 'user',
+          content: `Analyze this journal entry and return JSON with themes array and sentiment:
 
 "${content.substring(0, 500)}"
 
 Return format: {"themes": ["tag1", "tag2"], "sentiment": "positive|negative|neutral|mixed"}`,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 100,
-      }),
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 100,
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      const result = data.choices?.[0]?.message?.content?.trim();
-      if (result) {
-        const parsed = JSON.parse(result);
-        return {
-          themes: parsed.themes || basicTags.themes,
-          sentiment: parsed.sentiment || basicTags.sentiment,
-        };
-      }
+    const resultText = result.content?.trim();
+    if (resultText) {
+      const parsed = JSON.parse(resultText);
+      return {
+        themes: parsed.themes || basicTags.themes,
+        sentiment: parsed.sentiment || basicTags.sentiment,
+      };
     }
   } catch {
     // Fall back to basic tags

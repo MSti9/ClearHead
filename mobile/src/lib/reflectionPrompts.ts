@@ -1,5 +1,6 @@
 import type { JournalEntry } from '@/stores/journalStore';
 import { differenceInDays, differenceInWeeks, format } from 'date-fns';
+import { chatCompletion } from '@/lib/apiClient';
 
 export interface ReflectionPrompt {
   id: string;
@@ -75,48 +76,36 @@ export async function generateReflectionPrompts(
     });
   }
 
-  // If we have AI access, try to generate a more contextual prompt
-  const apiKey = process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY;
-  if (apiKey && entries.length >= 5) {
+  // Try to generate a more contextual prompt via AI
+  if (entries.length >= 5) {
     try {
       const recentEntries = entries.slice(0, 10);
       const entrySummaries = recentEntries
         .map((e) => e.content.substring(0, 200))
         .join('\n---\n');
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'You generate thoughtful reflection prompts for journaling. Return ONLY the prompt text, nothing else. Be warm and supportive.',
-            },
-            {
-              role: 'user',
-              content: `Based on these recent journal entries, generate ONE thoughtful follow-up question that helps the person reflect on their progress or see their situation differently:\n\n${entrySummaries}`,
-            },
-          ],
-          temperature: 0.8,
-          max_tokens: 100,
-        }),
+      const result = await chatCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: 'You generate thoughtful reflection prompts for journaling. Return ONLY the prompt text, nothing else. Be warm and supportive.',
+          },
+          {
+            role: 'user',
+            content: `Based on these recent journal entries, generate ONE thoughtful follow-up question that helps the person reflect on their progress or see their situation differently:\n\n${entrySummaries}`,
+          },
+        ],
+        temperature: 0.8,
+        max_tokens: 100,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const aiPrompt = data.choices?.[0]?.message?.content?.trim();
-        if (aiPrompt) {
-          prompts.push({
-            id: `ai_reflection_${Date.now()}`,
-            type: 'pattern',
-            prompt: aiPrompt,
-          });
-        }
+      const aiPrompt = result.content?.trim();
+      if (aiPrompt) {
+        prompts.push({
+          id: `ai_reflection_${Date.now()}`,
+          type: 'pattern',
+          prompt: aiPrompt,
+        });
       }
     } catch {
       // Silently fail - AI prompts are optional

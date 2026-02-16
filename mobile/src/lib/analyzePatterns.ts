@@ -1,4 +1,5 @@
 import type { JournalEntry } from '@/stores/journalStore';
+import { chatCompletion } from '@/lib/apiClient';
 
 export interface JournalInsight {
   id: string;
@@ -95,43 +96,22 @@ Guidelines:
 - Icons: Briefcase=work, Heart=relationships/love, Sun=positivity/energy, Cloud=stress/worry, Users=family/friends, Sparkles=creativity/joy, TrendingUp=growth/progress, Moon=rest/reflection`;
 
   try {
-    const apiKey = process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      console.log('No OpenAI API key available for pattern analysis');
-      return [];
-    }
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a supportive journaling companion that helps people understand their thoughts and feelings. You analyze journal entries to find meaningful patterns. Always respond with valid JSON only.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
+    const result = await chatCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a supportive journaling companion that helps people understand their thoughts and feelings. You analyze journal entries to find meaningful patterns. Always respond with valid JSON only.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
     });
 
-    if (!response.ok) {
-      console.error('Pattern analysis API error:', response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = result.content;
 
     if (!content) {
       return [];
