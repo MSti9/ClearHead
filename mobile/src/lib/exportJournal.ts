@@ -2,6 +2,7 @@ import type { JournalEntry } from '@/stores/journalStore';
 import { format, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { chatCompletion } from '@/lib/apiClient';
 
 /**
  * Export journal entries as a text file
@@ -97,10 +98,9 @@ export async function generateYearInReview(entries: JournalEntry[]): Promise<str
   }, 0);
 
   // Try to get AI-generated insights
-  const apiKey = process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY;
   let aiSummary = '';
 
-  if (apiKey && yearEntries.length >= 10) {
+  if (yearEntries.length >= 10) {
     try {
       // Sample entries throughout the year
       const sampledEntries = yearEntries
@@ -109,33 +109,22 @@ export async function generateYearInReview(entries: JournalEntry[]): Promise<str
         .map((e) => e.content.substring(0, 300))
         .join('\n---\n');
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'You write warm, supportive year-in-review summaries for personal journals. Be encouraging and highlight growth and themes. Keep it to 2-3 short paragraphs.',
-            },
-            {
-              role: 'user',
-              content: `Based on these journal entries from ${currentYear}, write a brief, warm year-in-review summary highlighting themes, growth, and encouragement:\n\n${sampledEntries}`,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 300,
-        }),
+      const result = await chatCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: 'You write warm, supportive year-in-review summaries for personal journals. Be encouraging and highlight growth and themes. Keep it to 2-3 short paragraphs.',
+          },
+          {
+            role: 'user',
+            content: `Based on these journal entries from ${currentYear}, write a brief, warm year-in-review summary highlighting themes, growth, and encouragement:\n\n${sampledEntries}`,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 300,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        aiSummary = data.choices?.[0]?.message?.content?.trim() || '';
-      }
+      aiSummary = result.content?.trim() || '';
     } catch {
       // Continue without AI summary
     }

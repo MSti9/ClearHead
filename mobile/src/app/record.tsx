@@ -20,6 +20,7 @@ import { Audio } from 'expo-av';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { formatTranscription } from '@/lib/formatTranscription';
+import { transcribeAudio } from '@/lib/apiClient';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -27,34 +28,6 @@ function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-async function transcribeAudio(uri: string): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', {
-    uri,
-    type: 'audio/m4a',
-    name: 'recording.m4a',
-  } as unknown as Blob);
-  formData.append('model', 'gpt-4o-mini-transcribe');
-  formData.append('response_format', 'json');
-
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Transcription error:', errorText);
-    throw new Error('Transcription failed');
-  }
-
-  const result = await response.json();
-  return result.text;
 }
 
 function PulsingRing() {

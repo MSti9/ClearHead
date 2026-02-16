@@ -1,8 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
-
-// Rachel voice - warm, friendly female voice
-const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
+import { textToSpeech } from '@/lib/apiClient';
 
 let currentSound: Audio.Sound | null = null;
 
@@ -24,33 +22,9 @@ export async function speakWithElevenLabs(
 
     onStart?.();
 
-    const apiUrl = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`;
+    // Request TTS from backend (API key stays server-side)
+    const audioBlob = await textToSpeech({ text });
 
-    // Use fetch to make POST request
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': process.env.EXPO_PUBLIC_VIBECODE_ELEVENLABS_API_KEY || '',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_flash_v2_5',
-        voice_settings: {
-          stability: 0.6,
-          similarity_boost: 0.8,
-          style: 0.3,
-          use_speaker_boost: true,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
-    }
-
-    // Get the audio blob and save to file
-    const audioBlob = await response.blob();
     const fileUri = FileSystem.documentDirectory + `coach_speech_${Date.now()}.mp3`;
 
     // Convert blob to base64 and write to file

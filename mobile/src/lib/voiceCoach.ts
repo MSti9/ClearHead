@@ -1,6 +1,8 @@
 // AI Coach - Conversational journaling assistant
 // Generates contextual questions and responses to guide users through reflection
 
+import { chatCompletion } from '@/lib/apiClient';
+
 interface CoachMessage {
   role: 'coach' | 'user';
   content: string;
@@ -71,18 +73,11 @@ export async function generateCoachResponse(
 
   // Generate a thoughtful follow-up question
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.EXPO_PUBLIC_VIBECODE_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a warm, genuine journaling coach having a voice conversation. Your role is to help people reflect and process their thoughts through gentle questioning.
+    const result = await chatCompletion({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a warm, genuine journaling coach having a voice conversation. Your role is to help people reflect and process their thoughts through gentle questioning.
 
 Guidelines:
 - Be warm but not overly enthusiastic or fake
@@ -100,27 +95,21 @@ Example good responses:
 - "Interesting. When you say frustrated, where do you feel that in your body?"
 - "Mmm. And how long have you been sitting with that?"
 - "I hear you. What would make this feel even a little bit better?"`,
-          },
-          ...context.messages.map((m) => ({
-            role: m.role === 'coach' ? 'assistant' : 'user',
-            content: m.content,
-          })),
-          {
-            role: 'user',
-            content: userMessage,
-          },
-        ],
-        max_tokens: 100,
-        temperature: 0.8,
-      }),
+        },
+        ...context.messages.map((m) => ({
+          role: m.role === 'coach' ? 'assistant' : ('user' as const),
+          content: m.content,
+        })),
+        {
+          role: 'user',
+          content: userMessage,
+        },
+      ],
+      max_tokens: 100,
+      temperature: 0.8,
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to generate response');
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || "Tell me more about that.";
+    return result.content || "Tell me more about that.";
   } catch (error) {
     console.error('Coach response generation failed:', error);
     // Fallback follow-up questions
