@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mic, PenLine, Sparkles, ChevronRight, Calendar, MessageCircle } from 'lucide-react-native';
+import { Mic, PenLine, Sparkles, ChevronRight, Calendar } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInDown,
@@ -380,47 +380,6 @@ export default function HomeScreen() {
                 </LinearGradient>
               </AnimatedPressable>
 
-              <AnimatedPressable
-                entering={FadeInUp.delay(450).springify()}
-                onPress={() => {
-                  Haptics.lightTap();
-                  router.push('/voice-coach');
-                }}
-                className="mt-4 rounded-2xl overflow-hidden"
-              >
-                <LinearGradient
-                  colors={['#E8EDE6', '#D4DDD0']}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 18,
-                    justifyContent: 'space-between',
-                  }}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-white/50 items-center justify-center mr-3">
-                      <MessageCircle size={20} color="#5C6B56" strokeWidth={2} />
-                    </View>
-                    <View>
-                      <Text
-                        style={{ fontFamily: 'DMSans_500Medium' }}
-                        className="text-stone-700 text-base"
-                      >
-                        Clean reflection
-                      </Text>
-                      <Text
-                        style={{ fontFamily: 'DMSans_400Regular' }}
-                        className="text-stone-500 text-xs"
-                      >
-                        Talk through what's stuck
-                      </Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color="#7C8B75" />
-                </LinearGradient>
-              </AnimatedPressable>
             </View>
 
             {/* Recent Entries */}

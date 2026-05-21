@@ -2,7 +2,7 @@
 
 ## Read this first
 
-`ClearHead_Locked_Decisions_v2.md` is the canonical source of truth for product direction, tone, scope, and language. Read it before changing product copy, UI, features, or implementation plans.
+`ClearHead_Locked_Decisions_v3.md` is the canonical source of truth for product direction, tone, scope, and language. Read it before changing product copy, UI, features, or implementation plans. v3 supersedes v2 — v2 is kept in the repo for history only; do not read or cite it as canon.
 
 Do not relitigate locked positioning unless Michael explicitly asks to reopen it.
 

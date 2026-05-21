@@ -117,9 +117,9 @@ ClearHead/
 
 ## Source of truth
 
-Read `ClearHead_Locked_Decisions_v2.md` before changing product direction, copy, UI hierarchy, or scope.
+Read `ClearHead_Locked_Decisions_v3.md` before changing product direction, copy, UI hierarchy, or scope.
 
-That file controls the positioning, tone, hero loop, cut list, and language map.
+That file controls the positioning, tone, two-mode architecture, hero loop, safety branch, and cut list. v3 supersedes v2; v2 is kept in the repo for history only.
 
 ---
 

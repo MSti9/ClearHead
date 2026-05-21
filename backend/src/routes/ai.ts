@@ -1,7 +1,13 @@
 import { Hono } from "hono";
+import type { StatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 
 const aiRouter = new Hono();
+
+// Minimal shape of the Anthropic /v1/messages response we rely on.
+interface AnthropicMessagesResponse {
+  content?: Array<{ type: string; text?: string }>;
+}
 
 // ──────────────────────────────────────────────
 // Mode 1 reflection contract
@@ -71,8 +77,9 @@ async function callClaudeForReflection(dump: string): Promise<
     return { ok: false, reason: `claude_http_${response.status}: ${errText.slice(0, 200)}` };
   }
 
-  const result = await response.json();
-  const raw = result.content?.[0]?.type === "text" ? result.content[0].text : null;
+  const result = (await response.json()) as AnthropicMessagesResponse;
+  const first = result.content?.[0];
+  const raw = first?.type === "text" ? first.text ?? null : null;
   if (!raw) {
     return { ok: false, reason: "claude_no_text_content" };
   }
@@ -133,10 +140,13 @@ aiRouter.post("/transcribe", async (c) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Transcription API error:", errorText);
-      return c.json({ error: "Transcription failed" }, response.status);
+      return c.json(
+        { error: "Transcription failed" },
+        response.status as StatusCode
+      );
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as Record<string, unknown>;
     return c.json(result);
   } catch (error) {
     console.error("Transcription proxy error:", error);
@@ -190,14 +200,17 @@ aiRouter.post("/chat", async (c) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Anthropic API error:", errorText);
-      return c.json({ error: "Chat completion failed" }, response.status);
+      return c.json(
+        { error: "Chat completion failed" },
+        response.status as StatusCode
+      );
     }
 
-    const result = await response.json();
+    const result = (await response.json()) as AnthropicMessagesResponse;
 
     // Normalize to OpenAI-compatible format so the mobile client doesn't need changes
-    const content =
-      result.content?.[0]?.type === "text" ? result.content[0].text : null;
+    const first = result.content?.[0];
+    const content = first?.type === "text" ? first.text ?? null : null;
 
     return c.json({
       choices: [{ message: { content } }],
@@ -237,7 +250,10 @@ aiRouter.post("/tts", async (c) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("OpenAI TTS API error:", errorText);
-      return c.json({ error: "Text-to-speech failed" }, response.status);
+      return c.json(
+        { error: "Text-to-speech failed" },
+        response.status as StatusCode
+      );
     }
 
     // Return the audio as binary
