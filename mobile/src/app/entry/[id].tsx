@@ -8,7 +8,6 @@ import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { format } from 'date-fns';
 import { MarkdownText, insertFormatting } from '@/components/MarkdownText';
-import { TAG_CONFIG } from '@/lib/autoTag';
 
 export default function EntryDetailScreen() {
   const router = useRouter();
@@ -74,27 +73,21 @@ export default function EntryDetailScreen() {
     }, 50);
   };
 
-  // Handle auto-continuing lists on Enter
   const handleTextChange = (newText: string) => {
     const prevText = prevContentRef.current;
 
-    // Check if user just pressed Enter (newline was added)
     if (newText.length === prevText.length + 1 && newText.endsWith('\n') && !prevText.endsWith('\n')) {
-      // Find the current line before the new Enter
       const textBeforeNewline = newText.slice(0, -1);
       const lastNewlineIndex = textBeforeNewline.lastIndexOf('\n');
       const currentLine = textBeforeNewline.slice(lastNewlineIndex + 1);
 
-      // Check if previous line was a bullet list item
       if (currentLine.startsWith('- ')) {
         const listContent = currentLine.slice(2).trim();
         if (listContent === '') {
-          // Empty bullet - remove it and stop the list
           setEditedContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
           prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
           return;
         }
-        // Continue the bullet list
         setEditedContent(newText + '- ');
         prevContentRef.current = newText + '- ';
         setTimeout(() => {
@@ -105,17 +98,14 @@ export default function EntryDetailScreen() {
         return;
       }
 
-      // Check if previous line was a numbered list item
       const numberedMatch = currentLine.match(/^(\d+)\.\s/);
       if (numberedMatch) {
         const listContent = currentLine.slice(numberedMatch[0].length).trim();
         if (listContent === '') {
-          // Empty numbered item - remove it and stop the list
           setEditedContent(textBeforeNewline.slice(0, lastNewlineIndex + 1));
           prevContentRef.current = textBeforeNewline.slice(0, lastNewlineIndex + 1);
           return;
         }
-        // Continue the numbered list with next number
         const nextNum = parseInt(numberedMatch[1], 10) + 1;
         setEditedContent(newText + `${nextNum}. `);
         prevContentRef.current = newText + `${nextNum}. `;
@@ -129,7 +119,6 @@ export default function EntryDetailScreen() {
       }
     }
 
-    // Also check for Enter pressed in the middle of text
     if (newText.length > prevText.length) {
       const diff = newText.length - prevText.length;
       for (let i = 0; i < prevText.length; i++) {
@@ -139,7 +128,6 @@ export default function EntryDetailScreen() {
             const lastNewlineBeforeCursor = textBeforeCursor.lastIndexOf('\n');
             const lineBeforeCursor = textBeforeCursor.slice(lastNewlineBeforeCursor + 1);
 
-            // Check for bullet
             if (lineBeforeCursor.startsWith('- ')) {
               const listContent = lineBeforeCursor.slice(2).trim();
               if (listContent === '') {
@@ -167,7 +155,6 @@ export default function EntryDetailScreen() {
               return;
             }
 
-            // Check for numbered list
             const numMatch = lineBeforeCursor.match(/^(\d+)\.\s/);
             if (numMatch) {
               const listContent = lineBeforeCursor.slice(numMatch[0].length).trim();
@@ -226,7 +213,6 @@ export default function EntryDetailScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* Header */}
         <Animated.View
           entering={FadeIn.delay(50)}
           className="flex-row items-center justify-between px-4 py-4"
@@ -282,7 +268,6 @@ export default function EntryDetailScreen() {
           contentContainerStyle={{ paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Date & Time */}
           <Animated.View entering={FadeInDown.delay(100).springify()} className="mb-6">
             <Text
               style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
@@ -295,7 +280,6 @@ export default function EntryDetailScreen() {
             </Text>
           </Animated.View>
 
-          {/* Entry Type Badge */}
           <Animated.View entering={FadeInDown.delay(150).springify()} className="flex-row mb-4">
             {entry.type === 'voice' && (
               <View className="bg-amber-100 px-3 py-1 rounded-full">
@@ -303,7 +287,7 @@ export default function EntryDetailScreen() {
                   style={{ fontFamily: 'DMSans_500Medium' }}
                   className="text-amber-700 text-xs"
                 >
-                  Voice note {entry.voiceDuration ? `· ${Math.floor(entry.voiceDuration / 60)}:${(entry.voiceDuration % 60).toString().padStart(2, '0')}` : ''}
+                  Talked it out {entry.voiceDuration ? `· ${Math.floor(entry.voiceDuration / 60)}:${(entry.voiceDuration % 60).toString().padStart(2, '0')}` : ''}
                 </Text>
               </View>
             )}
@@ -312,7 +296,7 @@ export default function EntryDetailScreen() {
                 <Text
                   style={{ fontFamily: 'DMSans_500Medium', color: '#5C6B56', fontSize: 12 }}
                 >
-                  Prompted entry
+                  Prompted dump
                 </Text>
               </View>
             )}
@@ -322,13 +306,12 @@ export default function EntryDetailScreen() {
                   style={{ fontFamily: 'DMSans_500Medium' }}
                   className="text-stone-500 text-xs"
                 >
-                  Written
+                  Written dump
                 </Text>
               </View>
             )}
           </Animated.View>
 
-          {/* Prompt (if used) */}
           {entry.promptUsed && (
             <Animated.View
               entering={FadeInDown.delay(200).springify()}
@@ -338,7 +321,7 @@ export default function EntryDetailScreen() {
                 style={{ fontFamily: 'DMSans_500Medium' }}
                 className="text-stone-400 text-xs uppercase tracking-wider mb-2"
               >
-                Prompt
+                Starter
               </Text>
               <Text
                 style={{ fontFamily: 'CormorantGaramond_500Medium' }}
@@ -349,7 +332,6 @@ export default function EntryDetailScreen() {
             </Animated.View>
           )}
 
-          {/* Content */}
           <Animated.View entering={FadeInDown.delay(250).springify()}>
             {isEditing ? (
               <TextInput
@@ -375,35 +357,8 @@ export default function EntryDetailScreen() {
               <MarkdownText content={entry.content} />
             )}
           </Animated.View>
-
-          {/* Tags */}
-          {entry.tags && entry.tags.length > 0 && (
-            <Animated.View
-              entering={FadeInDown.delay(300).springify()}
-              className="flex-row flex-wrap gap-2 mt-6 pt-6 border-t border-stone-200"
-            >
-              {entry.tags.map((tag) => {
-                const config = TAG_CONFIG[tag];
-                if (!config) return null;
-                return (
-                  <View
-                    key={tag}
-                    className="px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: config.bgColor }}
-                  >
-                    <Text
-                      style={{ fontFamily: 'DMSans_500Medium', color: config.color, fontSize: 12 }}
-                    >
-                      #{config.label}
-                    </Text>
-                  </View>
-                );
-              })}
-            </Animated.View>
-          )}
         </ScrollView>
 
-        {/* Format Toolbar - Bottom (when editing) */}
         {isEditing && (
           <Animated.View
             entering={FadeInUp.duration(200)}
@@ -456,7 +411,6 @@ export default function EntryDetailScreen() {
           </Animated.View>
         )}
 
-        {/* Delete Confirmation Modal */}
         <Modal
           visible={showDeleteModal}
           transparent
@@ -479,7 +433,7 @@ export default function EntryDetailScreen() {
                   style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
                   className="text-stone-800 text-xl text-center"
                 >
-                  Delete entry?
+                  Let it go?
                 </Text>
               </View>
 
@@ -487,7 +441,7 @@ export default function EntryDetailScreen() {
                 style={{ fontFamily: 'DMSans_400Regular' }}
                 className="text-stone-500 text-center mb-6"
               >
-                This cannot be undone. Your entry will be permanently deleted.
+                This will permanently delete this saved dump.
               </Text>
 
               <View className="gap-3">
@@ -502,7 +456,7 @@ export default function EntryDetailScreen() {
                     style={{ fontFamily: 'DMSans_500Medium' }}
                     className="text-stone-700 text-center"
                   >
-                    Cancel
+                    Keep it
                   </Text>
                 </Pressable>
 
@@ -514,7 +468,7 @@ export default function EntryDetailScreen() {
                     style={{ fontFamily: 'DMSans_500Medium' }}
                     className="text-white text-center"
                   >
-                    Delete
+                    Let it go
                   </Text>
                 </Pressable>
               </View>

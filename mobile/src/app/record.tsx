@@ -229,7 +229,7 @@ export default function RecordScreen() {
     } catch (error) {
       console.error('Transcription failed:', error);
       addEntry({
-        content: `Voice note (${formatDuration(duration)}) - Transcription unavailable. Please check your connection and try again.`,
+        content: `Talk it out (${formatDuration(duration)}) - Transcription unavailable. Please check your connection and try again.`,
         type: 'voice',
         voiceDuration: duration,
       });
@@ -267,17 +267,17 @@ export default function RecordScreen() {
   }));
 
   const getPromptText = () => {
-    if (isTranscribing) return 'Processing your words...';
-    if (!hasRecorded) return 'What is on your mind?';
+    if (isTranscribing) return 'Cleaning up your brain dump...';
+    if (!hasRecorded) return 'What do you need to get out?';
     if (isRecording) return 'Take your time...';
-    return 'Ready to save?';
+    return 'Ready to clean it up?';
   };
 
   const getSubText = () => {
-    if (isTranscribing) return 'Transcribing and formatting for readability';
-    if (!hasRecorded) return 'Tap to start recording';
-    if (isRecording) return 'Speak freely. No one else will hear this.';
-    return 'Your words will be transcribed';
+    if (isTranscribing) return 'Formatting the mess into something clearer';
+    if (!hasRecorded) return 'Tap to start talking';
+    if (isRecording) return 'Say what is stuck. No one else will hear this.';
+    return 'Your words will be cleaned up before saving';
   };
 
   return (
@@ -297,7 +297,7 @@ export default function RecordScreen() {
             <X size={20} color="#78716C" strokeWidth={2} />
           </Pressable>
           <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
-            Voice Note
+            Talk it out
           </Text>
           <View className="w-10" />
         </Animated.View>

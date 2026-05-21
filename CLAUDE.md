@@ -1,21 +1,147 @@
 # ClearHead
 
+## Read this first
+
+`ClearHead_Locked_Decisions_v2.md` is the canonical source of truth for product direction, tone, scope, and language. Read it before changing product copy, UI, features, or implementation plans.
+
+Do not relitigate locked positioning unless Michael explicitly asks to reopen it.
+
+---
+
 ## What this app is
 
-ClearHead is a **voice-first brain dump app**. The core promise:
+ClearHead is a **brain dump app for people who don't journal**.
 
-> Get thoughts out of your head fast.
+**Working subtitle / build-copy anchor:**
 
-Users speak or type what is stuck in their mind. The AI returns a short, calm reflection that helps them feel clearer and less mentally overloaded. That's it.
+> Brain dumps, cleaned up.
 
-**Not** a therapy app. **Not** a clinical mental-health tool. **Not** a journaling analytics platform.
+**One-liner:**
+
+> Journaling for people who don't journal. Talk or type what's stuck in your head, and the app turns the mess into something clean you can actually use.
+
+**Core promise:**
+
+> Get it out. Move on.
+
+ClearHead is not a therapy app, not a clinical mental-health tool, not a wellness dashboard, and not a journaling analytics platform.
+
+---
+
+## Hero loop
+
+The V1 hero loop is:
+
+1. Open the app.
+2. Talk or type the mess.
+3. AI cleans it up.
+4. The app returns the 3-part output:
+   - **What you said** — the cleaned-up version of the ramble.
+   - **What's underneath** — the core thing the user is circling.
+   - **One thing to let go of** — a short, grounding line.
+5. User chooses **Save it** or **Let it go**.
+
+Everything else is secondary.
+
+---
+
+## Hard rule
+
+ClearHead never re-opens the lid.
+
+No notifications, nudges, or surfaces may resurface the user's pain without the user intentionally going looking for it. History is pull-only. Pattern surfacing is secondary, opt-in, and never the point of the home screen.
+
+The release must stay a release.
+
+---
+
+## Tone
+
+Tone is non-negotiable:
+
+- Light, dry, steady.
+- Warm, not tender.
+- Calm, not somber.
+- Blunt without being cold.
+- Never clinical, diagnostic, therapeutic, or identity-flattering.
+- Market the lift, never the spiral.
+
+Avoid copy that sounds like:
+
+- "You're the strong one everyone leans on."
+- "Are you anxious and overwhelmed?"
+- "Begin your healing journey."
+- "Track your emotional patterns."
+- "Maintain your streak."
+
+Prefer copy that sounds like:
+
+- "What do you need to get out?"
+- "Talk it out."
+- "Write it down."
+- "No streaks. No pressure. Just a place to put the thought."
+- "Cleaning up your brain dump."
+
+---
+
+## V1 scope
+
+### IN — hero
+
+- Voice dump
+- Text dump
+- AI clean-up
+- 3-part output
+- Save it / Let it go
+- Simple onboarding
+- Paywall
+
+### IN — secondary
+
+These may exist only as supporting features and must never crowd the core loop:
+
+- Session history
+- Pull-only pattern surfacing
+- Sleep / white-noise sounds
+- Breathing tool
+
+### CUT
+
+Do not add or surface:
+
+- Streaks
+- Sentiment scores
+- Visible auto-tags
+- Mood charts
+- Pattern insights as a home-screen element
+- Gamification
+- Pets
+- Celebrity content
+- Clinical language
+- Social features
+- "Use it for anything" junk-drawer expansion
+
+---
+
+## Language map
+
+| Old February DNA | Use instead |
+|---|---|
+| Start journaling | What do you need to get out? / Clear your head |
+| Voice note | Talk it out — say what's stuck |
+| Write | Write it down — type the mess |
+| Voice Coach | Clean reflection |
+| Processing your words | Cleaning up your brain dump |
+| Patterns & insights | Pull-only clarity |
+| Save entry | Save it / Let it go |
+| Mental wellness | Clear your head |
 
 ---
 
 ## Monorepo structure
 
-```
-backend/   — Bun + Hono API server (AI proxy, health check)
+```text
+backend/   — Bun + Hono API server
 mobile/    — React Native + Expo SDK 53 app
 ```
 
@@ -27,7 +153,7 @@ See `backend/CLAUDE.md` and `mobile/CLAUDE.md` for implementation details.
 
 **Mobile:** React Native 0.79, Expo SDK 53, Expo Router, NativeWind v4, Zustand v5, TanStack Query v5
 **Backend:** Bun runtime, Hono 4.6, Zod 4
-**AI:** Anthropic Claude (reflection/chat), OpenAI Whisper (transcription), OpenAI TTS nova (voice playback)
+**AI:** Anthropic Claude, OpenAI Whisper, OpenAI TTS nova
 **Monetization:** RevenueCat (`react-native-purchases`)
 
 ---
@@ -35,14 +161,16 @@ See `backend/CLAUDE.md` and `mobile/CLAUDE.md` for implementation details.
 ## Environment variables
 
 **`backend/.env`**
-```
+
+```env
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 PORT=3000
 ```
 
 **`mobile/.env`**
-```
+
+```env
 EXPO_PUBLIC_BACKEND_URL=http://localhost:3000
 EXPO_PUBLIC_VIBECODE_REVENUECAT_TEST_KEY=
 EXPO_PUBLIC_VIBECODE_REVENUECAT_APPLE_KEY=
@@ -66,31 +194,3 @@ cd mobile && bunx expo start --android
 cd mobile && bun run typecheck
 cd mobile && bun lint
 ```
-
----
-
-## V1 scope
-
-Keep V1 tightly scoped to:
-- Voice brain dump
-- Text brain dump
-- AI reflection response
-- Saved entry history
-- Simple onboarding
-- Subscription / paywall
-
-Defer anything that doesn't directly serve: **tap → vent → clarity**.
-
-Features to avoid expanding into: advanced emotion analytics, dashboards, therapy-style coaching flows, pattern graphs, clinical language, social features.
-
----
-
-## AI response tone
-
-Responses must be:
-- Calm, concise, reflective, emotionally validating
-- Non-clinical and non-diagnostic
-
-**Avoid:** "you are experiencing symptoms of…", "this indicates anxiety…", "treatment", "diagnosis", "trauma processing"
-
-**Prefer:** "It sounds like…", "You may be carrying…", "A simpler way to look at this might be…", "For right now, the next small step could be…"
