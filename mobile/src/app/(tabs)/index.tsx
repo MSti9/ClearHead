@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Mic, PenLine, Sparkles, ChevronRight, Briefcase, Heart, Sun, Cloud, Users, TrendingUp, Moon, Calendar, MessageCircle } from 'lucide-react-native';
+import { Mic, PenLine, Sparkles, ChevronRight, Calendar, MessageCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeInDown,
@@ -16,9 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
-import { analyzePatterns, type JournalInsight } from '@/lib/analyzePatterns';
-import { TAG_CONFIG } from '@/lib/autoTag';
-import { format, isToday, isYesterday, differenceInDays, startOfMonth, isSameMonth } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { PaperTexture } from '@/components/PaperTexture';
 
 // Time-of-day color palettes for warm minimalism
@@ -26,35 +24,30 @@ function getTimeOfDayColors(): { gradient: [string, string]; accent: string; orb
   const hour = new Date().getHours();
 
   if (hour >= 5 && hour < 9) {
-    // Early morning - soft peach/rose dawn
     return {
       gradient: ['#FDF8F5', '#FAF0EA'],
       accent: '#D4A088',
       orbColors: ['#E8B4A0', '#D4A088', '#F5DDD0'],
     };
   } else if (hour >= 9 && hour < 12) {
-    // Late morning - warm cream
     return {
       gradient: ['#FDFBF7', '#FAF6F0'],
       accent: '#C4775A',
       orbColors: ['#C4775A', '#D4A088', '#E8CFC0'],
     };
   } else if (hour >= 12 && hour < 17) {
-    // Afternoon - neutral warm
     return {
       gradient: ['#FAF8F5', '#F5F2EE'],
       accent: '#8B7355',
       orbColors: ['#B8A08A', '#C9B8A5', '#DDD0C4'],
     };
   } else if (hour >= 17 && hour < 20) {
-    // Evening - golden hour warmth
     return {
       gradient: ['#FBF6F0', '#F8EEE4'],
       accent: '#C4775A',
       orbColors: ['#D4886A', '#C9A080', '#E8D4C4'],
     };
   } else {
-    // Night - cool, calm tones
     return {
       gradient: ['#F8F6F4', '#F2EFED'],
       accent: '#7C8B75',
@@ -66,26 +59,12 @@ function getTimeOfDayColors(): { gradient: [string, string]; accent: string; orb
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function getGreeting(userName?: string | null): string {
+  if (userName) return `Hey, ${userName}`;
+
   const hour = new Date().getHours();
-  if (userName) {
-    // Warm, personal greeting with name
-    if (hour < 12) return `Hey, ${userName}`;
-    if (hour < 17) return `Hey, ${userName}`;
-    return `Hey, ${userName}`;
-  }
-  // Fallback without name
   if (hour < 12) return 'Good morning';
   if (hour < 17) return 'Good afternoon';
   return 'Good evening';
-}
-
-function getTimeContext(): string {
-  const hour = new Date().getHours();
-  if (hour < 6) return 'The quiet hours are perfect for reflection.';
-  if (hour < 12) return 'A moment of clarity before the day unfolds.';
-  if (hour < 17) return 'A pause in the middle of things.';
-  if (hour < 21) return 'The day is winding down. How did it go?';
-  return 'Let your thoughts settle before sleep.';
 }
 
 function formatEntryDate(dateString: string): string {
@@ -93,64 +72,6 @@ function formatEntryDate(dateString: string): string {
   if (isToday(date)) return 'Today';
   if (isYesterday(date)) return 'Yesterday';
   return format(date, 'MMM d');
-}
-
-interface GentleStats {
-  message: string;
-  type: 'celebration' | 'gentle-nudge' | 'welcome';
-}
-
-function getGentleStats(entries: { createdAt: string }[], lastEntryDate: string | null): GentleStats | null {
-  if (entries.length === 0) {
-    return null; // Will show empty state instead
-  }
-
-  const now = new Date();
-  const thisMonth = startOfMonth(now);
-
-  // Count entries this month
-  const entriesThisMonth = entries.filter((e) => {
-    const entryDate = new Date(e.createdAt);
-    return isSameMonth(entryDate, now);
-  }).length;
-
-  // Calculate days since last entry
-  const lastEntry = entries[0];
-  const lastEntryDateObj = new Date(lastEntry.createdAt);
-  const daysSinceLastEntry = differenceInDays(now, lastEntryDateObj);
-
-  // If journaled today - celebrate!
-  if (isToday(lastEntryDateObj)) {
-    if (entriesThisMonth === 1) {
-      return { message: "First entry of the month!", type: 'celebration' };
-    }
-    return {
-      message: `You've journaled ${entriesThisMonth} ${entriesThisMonth === 1 ? 'time' : 'times'} this month`,
-      type: 'celebration'
-    };
-  }
-
-  // If it's been a while - gentle check-in (not guilt)
-  if (daysSinceLastEntry >= 5) {
-    return {
-      message: `It's been ${daysSinceLastEntry} days. No pressure, just checking in.`,
-      type: 'gentle-nudge'
-    };
-  }
-
-  // Recent activity - celebrate monthly progress
-  if (entriesThisMonth > 0) {
-    return {
-      message: `${entriesThisMonth} ${entriesThisMonth === 1 ? 'entry' : 'entries'} this month`,
-      type: 'celebration'
-    };
-  }
-
-  // New month, haven't journaled yet
-  return {
-    message: "New month, fresh start",
-    type: 'welcome'
-  };
 }
 
 function BreathingOrb() {
@@ -271,7 +192,6 @@ interface EntryPreviewProps {
     createdAt: string;
     type: string;
     promptUsed?: string;
-    tags?: string[];
   };
   index: number;
 }
@@ -323,96 +243,15 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
   );
 }
 
-const insightIcons = {
-  Briefcase: Briefcase,
-  Heart: Heart,
-  Sun: Sun,
-  Cloud: Cloud,
-  Users: Users,
-  Sparkles: Sparkles,
-  TrendingUp: TrendingUp,
-  Moon: Moon,
-};
-
-const insightColors: Record<string, { bg: string; icon: string }> = {
-  Briefcase: { bg: '#E8EDE6', icon: '#5C6B56' },
-  Heart: { bg: '#FCE7E7', icon: '#C4775A' },
-  Sun: { bg: '#FEF3C7', icon: '#D97706' },
-  Cloud: { bg: '#E5E7EB', icon: '#6B7280' },
-  Users: { bg: '#DBEAFE', icon: '#3B82F6' },
-  Sparkles: { bg: '#F3E8FF', icon: '#9333EA' },
-  TrendingUp: { bg: '#D1FAE5', icon: '#059669' },
-  Moon: { bg: '#E0E7FF', icon: '#4F46E5' },
-};
-
-function InsightCard({ insight, index }: { insight: JournalInsight; index: number }) {
-  const IconComponent = insightIcons[insight.icon] || Sparkles;
-  const colors = insightColors[insight.icon] || insightColors.Sparkles;
-
-  return (
-    <Animated.View
-      entering={FadeInDown.delay(500 + index * 100).springify()}
-      className="bg-white rounded-2xl p-4 mb-3"
-      style={{
-        shadowColor: '#2D2A26',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-        elevation: 2,
-      }}
-    >
-      <View className="flex-row items-start">
-        <View
-          className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: colors.bg }}
-        >
-          <IconComponent size={18} color={colors.icon} strokeWidth={2} />
-        </View>
-        <View className="flex-1">
-          <Text
-            style={{ fontFamily: 'DMSans_600SemiBold' }}
-            className="text-stone-800 text-sm mb-1"
-          >
-            {insight.title}
-          </Text>
-          <Text
-            style={{ fontFamily: 'DMSans_400Regular' }}
-            className="text-stone-500 text-sm leading-5"
-          >
-            {insight.description}
-          </Text>
-        </View>
-      </View>
-    </Animated.View>
-  );
-}
-
 export default function HomeScreen() {
   const router = useRouter();
   const entries = useJournalStore((s) => s.entries);
-  const lastEntryDate = useJournalStore((s) => s.lastEntryDate);
   const userName = useJournalStore((s) => s.userName);
-  const [insights, setInsights] = useState<JournalInsight[]>([]);
-  const [loadingInsights, setLoadingInsights] = useState(false);
 
   const recentEntries = entries.slice(0, 5);
   const hasEntries = entries.length > 0;
   const hasMoreEntries = entries.length > 5;
-  const gentleStats = getGentleStats(entries, lastEntryDate);
   const timeColors = getTimeOfDayColors();
-
-  // Analyze patterns when entries change
-  useEffect(() => {
-    if (entries.length >= 10) {
-      setLoadingInsights(true);
-      analyzePatterns(entries)
-        .then(setInsights)
-        .catch(() => setInsights([]))
-        .finally(() => setLoadingInsights(false));
-    } else {
-      setInsights([]);
-    }
-  }, [entries.length]);
 
   return (
     <View className="flex-1">
@@ -467,48 +306,32 @@ export default function HomeScreen() {
                   style={{ fontFamily: 'CormorantGaramond_400Regular_Italic' }}
                   className="text-stone-500 text-lg"
                 >
-                  {getTimeContext()}
+                  What do you need to get out?
+                </Text>
+                <Text
+                  style={{ fontFamily: 'DMSans_400Regular' }}
+                  className="text-stone-400 text-sm mt-5"
+                >
+                  No streaks. No pressure. Just a place to put the thought.
                 </Text>
               </Animated.View>
-
-              {gentleStats && (
-                <Animated.View
-                  entering={FadeInDown.delay(200).springify()}
-                  className="mt-5"
-                >
-                  <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-stone-400 text-sm"
-                  >
-                    {gentleStats.message}
-                  </Text>
-                </Animated.View>
-              )}
             </View>
 
             {/* Quick Actions */}
             <View className="px-6 mb-8">
-              <Animated.Text
-                entering={FadeInDown.delay(250).springify()}
-                style={{ fontFamily: 'DMSans_500Medium' }}
-                className="text-stone-500 text-xs uppercase tracking-wider mb-4"
-              >
-                Start journaling
-              </Animated.Text>
-
               <View className="flex-row gap-4">
                 <QuickAction
                   icon={<Mic size={20} color="white" strokeWidth={2} />}
-                  label="Voice note"
-                  sublabel="Talk it out"
+                  label="Talk it out"
+                  sublabel="say what's stuck"
                   onPress={() => router.push('/record')}
                   delay={300}
                   colors={['#C4775A', '#D4A088']}
                 />
                 <QuickAction
                   icon={<PenLine size={20} color="white" strokeWidth={2} />}
-                  label="Write"
-                  sublabel="Type freely"
+                  label="Write it down"
+                  sublabel="type the mess"
                   onPress={() => router.push('/new-entry')}
                   delay={350}
                   colors={['#7C8B75', '#9CAA95']}
@@ -543,13 +366,13 @@ export default function HomeScreen() {
                         style={{ fontFamily: 'DMSans_500Medium' }}
                         className="text-stone-700 text-base"
                       >
-                        Need a prompt?
+                        Need a nudge?
                       </Text>
                       <Text
                         style={{ fontFamily: 'DMSans_400Regular' }}
                         className="text-stone-500 text-xs"
                       >
-                        Browse conversation starters
+                        Browse simple starters
                       </Text>
                     </View>
                   </View>
@@ -557,7 +380,6 @@ export default function HomeScreen() {
                 </LinearGradient>
               </AnimatedPressable>
 
-              {/* Chat with Coach Button */}
               <AnimatedPressable
                 entering={FadeInUp.delay(450).springify()}
                 onPress={() => {
@@ -586,13 +408,13 @@ export default function HomeScreen() {
                         style={{ fontFamily: 'DMSans_500Medium' }}
                         className="text-stone-700 text-base"
                       >
-                        Talk it Through
+                        Clean reflection
                       </Text>
                       <Text
                         style={{ fontFamily: 'DMSans_400Regular' }}
                         className="text-stone-500 text-xs"
                       >
-                        Guided voice conversation
+                        Talk through what's stuck
                       </Text>
                     </View>
                   </View>
@@ -611,7 +433,7 @@ export default function HomeScreen() {
                   style={{ fontFamily: 'DMSans_500Medium' }}
                   className="text-stone-500 text-xs uppercase tracking-wider"
                 >
-                  Recent entries
+                  Recent dumps
                 </Text>
                 {hasMoreEntries && (
                   <Pressable onPress={() => {
@@ -651,90 +473,17 @@ export default function HomeScreen() {
                     style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
                     className="text-stone-600 text-xl text-center mb-2"
                   >
-                    Your journal awaits
+                    Nothing saved yet
                   </Text>
                   <Text
                     style={{ fontFamily: 'DMSans_400Regular' }}
                     className="text-stone-400 text-sm text-center"
                   >
-                    No pressure. Start whenever you're ready.
+                    Say it, clean it up, then decide whether to keep it.
                   </Text>
                 </Animated.View>
               )}
             </View>
-
-            {/* Insights Section */}
-            {insights.length > 0 && (
-              <View className="px-6 mt-8">
-                <Animated.View
-                  entering={FadeInDown.delay(450).springify()}
-                  className="mb-4"
-                >
-                  <Text
-                    style={{ fontFamily: 'DMSans_500Medium' }}
-                    className="text-stone-500 text-xs uppercase tracking-wider"
-                  >
-                    Patterns & Insights
-                  </Text>
-                </Animated.View>
-
-                <Animated.View
-                  entering={FadeInDown.delay(480).springify()}
-                  className="bg-amber-50/60 border border-amber-100/50 rounded-xl px-4 py-3 mb-5"
-                >
-                  <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-amber-700/80 text-xs leading-5"
-                  >
-                    Based on your recent entries, here's what we've noticed.
-                  </Text>
-                </Animated.View>
-
-                {insights.map((insight, index) => (
-                  <InsightCard key={insight.id} insight={insight} index={index} />
-                ))}
-              </View>
-            )}
-
-            {/* Loading insights indicator */}
-            {loadingInsights && entries.length >= 10 && (
-              <View className="px-6 mt-8">
-                <View className="bg-stone-100/60 rounded-2xl p-5 items-center">
-                  <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-stone-400 text-sm"
-                  >
-                    Analyzing your journal patterns...
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Teaser for insights */}
-            {entries.length >= 5 && entries.length < 10 && !loadingInsights && (
-              <View className="px-6 mt-8">
-                <Animated.View
-                  entering={FadeInDown.delay(450).springify()}
-                  className="bg-stone-100/60 rounded-2xl p-5"
-                >
-                  <View className="flex-row items-center mb-2">
-                    <TrendingUp size={16} color="#9C9690" strokeWidth={2} />
-                    <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-stone-500 text-sm ml-2"
-                    >
-                      Insights coming soon
-                    </Text>
-                  </View>
-                  <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-stone-400 text-xs leading-5"
-                  >
-                    After {10 - entries.length} more {10 - entries.length === 1 ? 'entry' : 'entries'}, we'll start identifying patterns to help you understand yourself better.
-                  </Text>
-                </Animated.View>
-              </View>
-            )}
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
