@@ -88,11 +88,11 @@ export async function generateReflectionPrompts(
         messages: [
           {
             role: 'system',
-            content: 'You generate thoughtful reflection prompts for journaling. Return ONLY the prompt text, nothing else. Be warm and supportive.',
+            content: 'Generate ONE short prompt that points the user back to something they already put down. Plain and direct — no therapeutic framing, no "reflect on your journey," no flattery. Light, dry, steady. Return ONLY the prompt text, nothing else.',
           },
           {
             role: 'user',
-            content: `Based on these recent journal entries, generate ONE thoughtful follow-up question that helps the person reflect on their progress or see their situation differently:\n\n${entrySummaries}`,
+            content: `Based on these recent saved dumps, return ONE short prompt the user might want to revisit. Bounded to what they actually said:\n\n${entrySummaries}`,
           },
         ],
         temperature: 0.8,

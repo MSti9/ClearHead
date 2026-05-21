@@ -92,13 +92,13 @@ export async function extractTagsWithAI(content: string): Promise<EntryTags> {
       messages: [
         {
           role: 'system',
-          content: `You analyze journal entries and extract theme tags. Return ONLY valid JSON.
+          content: `Read a saved brain dump and pick its themes from the fixed list. Return ONLY valid JSON.
 Available themes: work, family, relationships, health, stress, grief, joy, gratitude, growth, money, faith, creativity
 Sentiment options: positive, negative, neutral, mixed`,
         },
         {
           role: 'user',
-          content: `Analyze this journal entry and return JSON with themes array and sentiment:
+          content: `Read this dump and return JSON with themes array and sentiment:
 
 "${content.substring(0, 500)}"
 

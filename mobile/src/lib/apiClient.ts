@@ -60,6 +60,48 @@ export async function transcribeAudio(uri: string): Promise<string> {
 }
 
 /**
+ * Mode 1 hero-loop reflection. Sends the user's brain dump
+ * (text or Whisper transcript) to the backend and gets back the
+ * 5-field reflection contract.
+ *
+ * The backend validates the model's response with Zod and retries
+ * once on a parse failure, so this call returns a well-shaped object
+ * or throws.
+ */
+export interface ReflectionResponse {
+  what_you_said: string;
+  whats_underneath: string;
+  let_go_of: string | null;
+  support_message: string | null;
+  safety_flag: boolean;
+}
+
+export async function reflectOnDump(dump: string): Promise<ReflectionResponse> {
+  const response = await fetch(`${BACKEND_URL}/api/ai/reflect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dump }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    throw new Error(`Reflection API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  // Defensive shape check — backend already validates with Zod, but this
+  // catches the case where the request hits the wrong server entirely.
+  if (
+    typeof data?.what_you_said !== 'string' ||
+    typeof data?.whats_underneath !== 'string' ||
+    typeof data?.safety_flag !== 'boolean'
+  ) {
+    throw new Error('Reflection response missing required fields');
+  }
+  return data as ReflectionResponse;
+}
+
+/**
  * Proxy a text-to-speech request through the backend (OpenAI TTS).
  * Returns the audio as a blob.
  */

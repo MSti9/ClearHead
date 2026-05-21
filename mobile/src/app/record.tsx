@@ -17,7 +17,6 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
-import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { formatTranscription } from '@/lib/formatTranscription';
 import { transcribeAudio } from '@/lib/apiClient';
@@ -121,7 +120,6 @@ function WaveformBar({ index, isRecording }: { index: number; isRecording: boole
 
 export default function RecordScreen() {
   const router = useRouter();
-  const addEntry = useJournalStore((s) => s.addEntry);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -219,21 +217,30 @@ export default function RecordScreen() {
       const rawTranscription = await transcribeAudio(recordingUri);
       const formattedText = await formatTranscription(rawTranscription);
 
-      addEntry({
-        content: formattedText,
-        type: 'voice',
-        voiceDuration: duration,
-      });
       Haptics.success();
-      router.back();
+      // Hand the dump to the reflection screen. Storage is decided
+      // there (Save it / Let it go), per the Mode 1 hero loop.
+      router.replace({
+        pathname: '/reflection',
+        params: {
+          dump: formattedText,
+          type: 'voice',
+          voiceDuration: String(duration),
+        },
+      });
     } catch (error) {
       console.error('Transcription failed:', error);
-      addEntry({
-        content: `Talk it out (${formatDuration(duration)}) - Transcription unavailable. Please check your connection and try again.`,
-        type: 'voice',
-        voiceDuration: duration,
-      });
-      router.back();
+      // Surface a soft error and let the user re-record. We deliberately
+      // do NOT push a "transcription unavailable" entry into history —
+      // an unreflected, unconfirmed entry would violate the loop.
+      setIsTranscribing(false);
+      Haptics.warning();
+      // Reset to a re-record state so the user can try again.
+      setHasRecorded(false);
+      setRecordingUri(null);
+      setDuration(0);
+      recordingRef.current = null;
+      return;
     } finally {
       setIsTranscribing(false);
     }

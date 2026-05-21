@@ -4,6 +4,12 @@ import { extractTagsFromContent } from '@/lib/autoTag';
 
 export type EntryType = 'text' | 'voice' | 'prompted';
 
+export interface Reflection {
+  what_you_said: string;
+  whats_underneath: string;
+  let_go_of: string | null;
+}
+
 export interface JournalEntry {
   id: string;
   content: string;
@@ -15,6 +21,11 @@ export interface JournalEntry {
   mood?: string;
   tags?: string[];
   sentiment?: 'positive' | 'negative' | 'neutral' | 'mixed';
+  /**
+   * Mode 1 hero-loop output, attached when the user chose Save it on
+   * the reflection screen. Optional — older entries predate the loop.
+   */
+  reflection?: Reflection;
 }
 
 export interface ReminderSettings {

@@ -113,11 +113,11 @@ export async function generateYearInReview(entries: JournalEntry[]): Promise<str
         messages: [
           {
             role: 'system',
-            content: 'You write warm, supportive year-in-review summaries for personal journals. Be encouraging and highlight growth and themes. Keep it to 2-3 short paragraphs.',
+            content: 'Write a short year-in-review based on a set of saved brain dumps. Plain and direct — no flattery, no "your journey," no clinical framing. Name the themes that came up. 2–3 short paragraphs. Light, dry, steady.',
           },
           {
             role: 'user',
-            content: `Based on these journal entries from ${currentYear}, write a brief, warm year-in-review summary highlighting themes, growth, and encouragement:\n\n${sampledEntries}`,
+            content: `Based on these saved dumps from ${currentYear}, write a brief year-in-review naming the themes that came up. Plain language, no flattery:\n\n${sampledEntries}`,
           },
         ],
         temperature: 0.7,

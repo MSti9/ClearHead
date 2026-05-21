@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrdered, Type } from 'lucide-react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { insertFormatting } from '@/components/MarkdownText';
 
@@ -43,7 +42,6 @@ type FontId = typeof FONT_OPTIONS[number]['id'];
 export default function NewEntryScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ prompt?: string }>();
-  const addEntry = useJournalStore((s) => s.addEntry);
   const [content, setContent] = useState('');
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [selection, setSelection] = useState<SelectionState>({ start: 0, end: 0 });
@@ -229,12 +227,16 @@ export default function NewEntryScreen() {
     if (!hasContent) return;
 
     Haptics.success();
-    addEntry({
-      content: content.trim(),
-      type: promptText ? 'prompted' : 'text',
-      promptUsed: promptText ?? undefined,
+    Keyboard.dismiss();
+    // Text dump → reflection screen. Save/Let-it-go decision lives there.
+    router.replace({
+      pathname: '/reflection',
+      params: {
+        dump: content.trim(),
+        type: promptText ? 'prompted' : 'text',
+        ...(promptText ? { promptUsed: promptText } : {}),
+      },
     });
-    router.back();
   };
 
   const handleFormat = (format: 'bold' | 'italic' | 'header' | 'quote' | 'list' | 'numbered') => {

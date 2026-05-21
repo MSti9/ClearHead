@@ -120,6 +120,21 @@ function RootLayoutNav() {
             presentation: 'fullScreenModal',
           }}
         />
+        <Stack.Screen
+          name="reflection"
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="keep-talking"
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
