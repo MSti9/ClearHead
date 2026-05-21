@@ -67,12 +67,12 @@ export async function analyzePatterns(entries: JournalEntry[]): Promise<JournalI
     return `[${date}]: ${preview}`;
   }).join('\n\n');
 
-  const prompt = `Analyze these journal entries and identify 2-3 meaningful patterns or insights. Focus on:
-- Recurring themes or topics (work, relationships, health, hobbies, etc.)
-- Emotional patterns (what makes them happy, stressed, peaceful)
-- Time-based patterns (morning vs evening mood, weekend vs weekday)
+  const prompt = `Pick 2–3 plain observations across these saved dumps. Look at:
+- Recurring topics (work, relationships, health, etc.)
+- Emotional patterns (what tends to weigh, what tends to lift)
+- Time-based patterns (mornings vs evenings, weekends vs weekdays)
 
-Journal entries:
+Saved dumps:
 ${entrySummaries}
 
 Respond in this exact JSON format only, no other text:
@@ -81,26 +81,25 @@ Respond in this exact JSON format only, no other text:
     {
       "type": "theme" | "emotion" | "observation",
       "title": "Short title (5-7 words max)",
-      "description": "Friendly, supportive observation (1-2 sentences, speak directly to the user with 'you')",
+      "description": "One plain sentence, 'you' addressed directly. No flattery, no fix.",
       "icon": "Briefcase" | "Heart" | "Sun" | "Cloud" | "Users" | "Sparkles" | "TrendingUp" | "Moon"
     }
   ]
 }
 
-Guidelines:
-- Be warm and supportive, not clinical
-- Use "you" to speak directly to the user
-- Focus on helpful observations, not judgments
-- If you notice something positive, celebrate it
-- If you notice stress patterns, be gentle and constructive
-- Icons: Briefcase=work, Heart=relationships/love, Sun=positivity/energy, Cloud=stress/worry, Users=family/friends, Sparkles=creativity/joy, TrendingUp=growth/progress, Moon=rest/reflection`;
+Rules:
+- Bounded to what the dumps SAID. Never diagnose who the user IS.
+- Plain language, no clinical or therapeutic framing.
+- No "celebrate," no "your journey," no "you're so strong."
+- If something positive shows up, name it. If something's heavy, name it. Don't push either way.
+- Icons: Briefcase=work, Heart=relationships, Sun=energy, Cloud=worry, Users=family/friends, Sparkles=creativity, TrendingUp=progress, Moon=rest`;
 
   try {
     const result = await chatCompletion({
       messages: [
         {
           role: 'system',
-          content: 'You are a supportive journaling companion that helps people understand their thoughts and feelings. You analyze journal entries to find meaningful patterns. Always respond with valid JSON only.',
+          content: 'Pull plain observations from a set of saved brain dumps. Light, dry, steady — never coach-y, clinical, or flattering. Bounded to what the dumps said; never diagnose who the user is. Always respond with valid JSON only.',
         },
         {
           role: 'user',
