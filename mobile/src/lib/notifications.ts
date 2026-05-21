@@ -85,13 +85,13 @@ export async function scheduleReminders(settings: ReminderSettings): Promise<voi
   const gentleMessages = settings.gentleNudge
     ? [
         { title: 'A moment for yourself?', body: getRandomPrompt().prompt },
-        { title: 'Checking in', body: 'No pressure, but your journal is here when you need it.' },
+        { title: 'Checking in', body: 'No pressure. Here whenever you need to clear your head.' },
         { title: 'Quick thought?', body: 'Sometimes just a few words can help clear your head.' },
         { title: 'Your space awaits', body: getRandomPrompt().prompt },
       ]
     : [
-        { title: 'Time to journal', body: 'Take a moment to write down your thoughts.' },
-        { title: 'Journal reminder', body: 'Your daily journaling time is here.' },
+        { title: 'Clear your head', body: 'A moment to put a thought down.' },
+        { title: 'Quick reminder', body: 'Your daily moment to clear your head.' },
       ];
 
   // Schedule notifications for each enabled day
