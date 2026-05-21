@@ -12,7 +12,7 @@ export async function exportAsText(entries: JournalEntry[]): Promise<void> {
     throw new Error('No entries to export');
   }
 
-  const header = `CLEARHEAD JOURNAL EXPORT
+  const header = `CLEARHEAD EXPORT
 Generated: ${format(new Date(), 'MMMM d, yyyy')}
 Total Entries: ${entries.length}
 ${'='.repeat(50)}
@@ -34,7 +34,7 @@ ${prompt}${entry.content}
     .join('\n');
 
   const fullContent = header + content;
-  const fileName = `clearhead-journal-${format(new Date(), 'yyyy-MM-dd')}.txt`;
+  const fileName = `clearhead-export-${format(new Date(), 'yyyy-MM-dd')}.txt`;
   const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
   await FileSystem.writeAsStringAsync(filePath, fullContent, {
@@ -44,7 +44,7 @@ ${prompt}${entry.content}
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(filePath, {
       mimeType: 'text/plain',
-      dialogTitle: 'Export Journal',
+      dialogTitle: 'Export',
     });
   }
 }
@@ -135,7 +135,7 @@ export async function generateYearInReview(entries: JournalEntry[]): Promise<str
 ${'='.repeat(30)}
 
 📊 BY THE NUMBERS
-• ${totalEntries} journal entries
+• ${totalEntries} entries
 • ${totalWords.toLocaleString()} words written
 • ${voiceEntries} voice notes
 • ${promptedEntries} prompted entries

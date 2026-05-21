@@ -525,7 +525,7 @@ export default function VoiceCoachScreen() {
             style={{ fontFamily: 'DMSans_400Regular' }}
             className="text-stone-400 text-xs text-center"
           >
-            Your conversation will be saved as a journal entry
+            We'll save this for you
           </Text>
         </Animated.View>
       </SafeAreaView>

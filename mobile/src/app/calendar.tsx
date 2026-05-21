@@ -257,7 +257,7 @@ export default function CalendarScreen() {
               style={{ fontFamily: 'DMSans_400Regular' }}
               className="text-stone-400 text-sm"
             >
-              Your journaling history
+              Look back when you want to
             </Text>
           </View>
         </View>
@@ -316,7 +316,7 @@ export default function CalendarScreen() {
                 style={{ fontFamily: 'DMSans_400Regular' }}
                 className="text-stone-400 text-xs"
               >
-                days journaled
+                days cleared
               </Text>
             </View>
             <View className="flex-1 bg-white rounded-2xl p-4" style={{
@@ -400,7 +400,7 @@ export default function CalendarScreen() {
               <View className="flex-row items-center">
                 <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#C4775A' }} />
                 <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-500 text-xs">
-                  Journaled
+                  Cleared
                 </Text>
               </View>
               <View className="flex-row items-center">
