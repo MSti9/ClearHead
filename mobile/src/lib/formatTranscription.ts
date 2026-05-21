@@ -1,6 +1,7 @@
 /**
- * Format voice transcriptions into readable, well-structured text
- * Uses AI to add paragraph breaks, proper punctuation, and improve readability
+ * Format Whisper voice transcriptions into readable, well-structured text.
+ * Uses AI to add paragraph breaks, basic punctuation, and improve readability
+ * before the dump is handed to the reflection engine.
  */
 
 import { chatCompletion } from '@/lib/apiClient';
@@ -20,18 +21,15 @@ export async function formatTranscription(rawText: string): Promise<string> {
       messages: [
         {
           role: 'system',
-          content: `You are a text formatter for journal entries. Your job is to take voice transcriptions and format them into readable, well-structured text.
+          content: `Clean up a raw voice transcript of a brain dump so it's readable. You're a formatter, not an editor — keep the user's words and meaning intact.
 
 Rules:
-1. Break the text into natural paragraphs based on topic/thought changes
-2. Add proper spacing between paragraphs (use double line breaks: \\n\\n)
-3. Fix obvious grammar issues and run-on sentences
-4. Keep the original meaning and words - just improve structure
-5. Make it easy and pleasant to read
-6. Don't add any commentary, titles, or extra content
-7. Return ONLY the formatted text, nothing else
-8. Preserve the conversational, personal tone
-9. If there are clear topic shifts, start a new paragraph
+1. Break the text into natural paragraphs at clear topic or thought shifts.
+2. Use double line breaks between paragraphs (\\n\\n).
+3. Fix obvious grammar slips and run-on sentences; don't rewrite voice or tone.
+4. Don't add commentary, titles, headings, or anything not in the original.
+5. Preserve the user's conversational, personal voice exactly as they spoke it.
+6. Return ONLY the formatted text, nothing else.
 
 Example input: "I've been thinking about work lately it's been really stressful my boss keeps piling on more projects and I don't know how to handle it all also I've been feeling tired all the time maybe I need a vacation or something I should probably talk to someone about this"
 

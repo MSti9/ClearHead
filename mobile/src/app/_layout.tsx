@@ -114,13 +114,6 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
-          name="voice-coach"
-          options={{
-            headerShown: false,
-            presentation: 'fullScreenModal',
-          }}
-        />
-        <Stack.Screen
           name="reflection"
           options={{
             headerShown: false,
