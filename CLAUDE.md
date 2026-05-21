@@ -30,16 +30,29 @@ ClearHead is not a therapy app, not a clinical mental-health tool, not a wellnes
 
 ## Hero loop
 
-The V1 hero loop is:
+ClearHead has **two modes and one shared close**. The user picks the mode; the close is the same either way.
 
-1. Open the app.
-2. Talk or type the mess.
-3. AI cleans it up.
-4. The app returns the 3-part output:
-   - **What you said** — the cleaned-up version of the ramble.
-   - **What's underneath** — the core thing the user is circling.
-   - **One thing to let go of** — a short, grounding line.
-5. User chooses **Save it** or **Let it go**.
+### Mode 1 — Get It Out (default, one-pass)
+
+1. Open the app, pick voice or text.
+2. Dump what's stuck. No back-and-forth.
+3. Tap **Done**.
+
+### Mode 2 — Talk It Through (premium, voice-back)
+
+1. Open the app, pick Talk It Through.
+2. Talk; ClearHead talks back out loud and asks one useful follow-up at a time, helping the user go a layer deeper — toward a close and a lighter exit, never endless excavation.
+3. The user decides when to stop and taps **Done**. No adaptive "sense when you're finished" detection in V1 — no forced ending, no clingy continuation, no abrupt cutoff.
+
+### Shared close
+
+After **Done**, the app cleans up the mess and returns the 3-part reflection:
+
+- **What you said** — the dump cleaned up. Clear, tight, 1–3 sentences.
+- **What's underneath** — one plain sentence naming the real thing the user is circling. Bounded to what they SAID; never diagnose who they ARE.
+- **One thing to let go of** — a short grounding line they can put down. Grounding, not advice. Never "you should," never a fix, never clinical.
+
+The user then chooses **Save it** / **Let it go** / **Keep talking**.
 
 Everything else is secondary.
 
@@ -88,11 +101,10 @@ Prefer copy that sounds like:
 
 ### IN — hero
 
-- Voice dump
-- Text dump
-- AI clean-up
-- 3-part output
-- Save it / Let it go
+- **Mode 1 — Get It Out:** voice dump, text dump, one-pass release
+- **Mode 2 — Talk It Through:** live voice-back conversation
+- Shared close: AI clean-up + 3-part output
+- Save it / Let it go / Keep talking
 - Simple onboarding
 - Paywall
 
