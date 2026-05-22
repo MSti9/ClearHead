@@ -2,7 +2,9 @@
 
 ## Read this first
 
-`ClearHead_Locked_Decisions_v3.md` is the canonical source of truth for product direction, tone, scope, and language. Read it before changing product copy, UI, features, or implementation plans. v3 supersedes v2 — v2 is kept in the repo for history only; do not read or cite it as canon.
+`ClearHead_Locked_Decisions_v4_Renamed_Spillway.md` is the canonical source of truth for product direction, tone, scope, naming, visual identity, and language. Read it before changing product copy, UI, features, or implementation plans. v4 supersedes v3 (which superseded v2); v3 and v2 are kept in the repo for history only — do not read or cite either as canon.
+
+**Note:** v4 renames the product from ClearHead to Spillway. The rename has NOT yet been applied to code, app strings, bundle IDs, routes, files, or icons — v4 is the bridge document while that cascade is planned. Until the rename ships, this CLAUDE.md and other repo files still reference ClearHead in many places; that is expected during the transition. Treat v4 as the canonical product spec regardless.
 
 Do not relitigate locked positioning unless Michael explicitly asks to reopen it.
 
