@@ -117,9 +117,11 @@ ClearHead/
 
 ## Source of truth
 
-Read `ClearHead_Locked_Decisions_v3.md` before changing product direction, copy, UI hierarchy, or scope.
+Read `ClearHead_Locked_Decisions_v4_Renamed_Spillway.md` before changing product direction, copy, UI hierarchy, naming, or scope.
 
-That file controls the positioning, tone, two-mode architecture, hero loop, safety branch, and cut list. v3 supersedes v2; v2 is kept in the repo for history only.
+That file controls the positioning, tone, two-mode architecture, hero loop, safety branch, visual identity, and cut list. v4 supersedes v3 (which superseded v2); v3 and v2 are kept in the repo for history only.
+
+**Heads-up:** v4 renames the product from ClearHead to Spillway. The rename has NOT yet been applied to code, app strings, bundle IDs, routes, files, or icons — v4 is the bridge document while that cascade is planned. The repo still says ClearHead in many places during the transition.
 
 ---
 
