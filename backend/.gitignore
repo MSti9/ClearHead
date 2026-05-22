@@ -17,7 +17,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 server.log
 studio.log
 
-# dotenv environment variable files
+# dotenv environment variable files — never commit .env;
+# commit a placeholder schema as .env.example instead.
+.env
 .env.development.local
 .env.test.local
 .env.production.local
