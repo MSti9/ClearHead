@@ -25,6 +25,7 @@ import {
 } from '@expo-google-fonts/merriweather';
 import { useJournalStore } from '@/stores/journalStore';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
@@ -34,15 +35,18 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+// Navigation theme — Spillway Industrial Calm tokens.
+// The variable name remains `journalTheme` for now to avoid a wider
+// rename in this PR; logical refactor for a later cleanup.
 const journalTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#FAF8F5',
-    card: '#FAF8F5',
-    text: '#2D2A26',
-    border: '#E8E4DE',
-    primary: '#C4775A',
+    background: SpillwayColors.graphite,
+    card: SpillwayColors.charcoal,
+    text: SpillwayColors.bone,
+    border: SpillwayColors.border,
+    primary: SpillwayColors.ember,
   },
 };
 
@@ -171,7 +175,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <RootLayoutNav />
         </KeyboardProvider>
       </GestureHandlerRootView>

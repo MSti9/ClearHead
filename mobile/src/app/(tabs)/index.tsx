@@ -18,42 +18,18 @@ import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { format, isToday, isYesterday } from 'date-fns';
 import { PaperTexture } from '@/components/PaperTexture';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
-// Time-of-day color palettes for warm minimalism
+// Spillway Industrial Calm — single steady palette. The v3 time-of-day
+// warm variation has been collapsed for now; a future revision can decide
+// whether to bring back subtle daypart variation (e.g., slightly warmer ember
+// at night) within the new palette.
 function getTimeOfDayColors(): { gradient: [string, string]; accent: string; orbColors: [string, string, string] } {
-  const hour = new Date().getHours();
-
-  if (hour >= 5 && hour < 9) {
-    return {
-      gradient: ['#FDF8F5', '#FAF0EA'],
-      accent: '#D4A088',
-      orbColors: ['#E8B4A0', '#D4A088', '#F5DDD0'],
-    };
-  } else if (hour >= 9 && hour < 12) {
-    return {
-      gradient: ['#FDFBF7', '#FAF6F0'],
-      accent: '#C4775A',
-      orbColors: ['#C4775A', '#D4A088', '#E8CFC0'],
-    };
-  } else if (hour >= 12 && hour < 17) {
-    return {
-      gradient: ['#FAF8F5', '#F5F2EE'],
-      accent: '#8B7355',
-      orbColors: ['#B8A08A', '#C9B8A5', '#DDD0C4'],
-    };
-  } else if (hour >= 17 && hour < 20) {
-    return {
-      gradient: ['#FBF6F0', '#F8EEE4'],
-      accent: '#C4775A',
-      orbColors: ['#D4886A', '#C9A080', '#E8D4C4'],
-    };
-  } else {
-    return {
-      gradient: ['#F8F6F4', '#F2EFED'],
-      accent: '#7C8B75',
-      orbColors: ['#9CA8A0', '#B4BEB8', '#CED6D2'],
-    };
-  }
+  return {
+    gradient: [SpillwayColors.graphite, SpillwayColors.charcoal],
+    accent: SpillwayColors.ember,
+    orbColors: [SpillwayColors.ember, SpillwayColors.amber, SpillwayColors.charcoal],
+  };
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -210,32 +186,42 @@ function EntryPreview({ entry, index }: EntryPreviewProps) {
     <AnimatedPressable
       entering={FadeInDown.delay(400 + index * 100).springify()}
       onPress={handlePress}
-      className="bg-white rounded-2xl p-5 mb-4"
+      className="rounded-2xl p-5 mb-4"
       style={{
-        shadowColor: '#2D2A26',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 12,
-        elevation: 2,
+        backgroundColor: SpillwayColors.charcoal,
+        borderWidth: 1,
+        borderColor: SpillwayColors.border,
       }}
     >
       <Text
-        style={{ fontFamily: 'DMSans_400Regular' }}
-        className="text-stone-400 text-xs mb-3"
+        style={{
+          fontFamily: 'DMSans_400Regular',
+          color: SpillwayColors.mutedText,
+          fontSize: 12,
+          marginBottom: 12,
+        }}
       >
         {formatEntryDate(entry.createdAt)}
       </Text>
       {entry.promptUsed && (
         <Text
-          style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-          className="text-stone-500 text-base mb-2"
+          style={{
+            fontFamily: 'DMSans_400Regular',
+            color: SpillwayColors.mutedText,
+            fontSize: 14,
+            marginBottom: 8,
+          }}
         >
           {entry.promptUsed}
         </Text>
       )}
       <Text
-        style={{ fontFamily: 'DMSans_400Regular' }}
-        className="text-stone-700 text-base leading-6"
+        style={{
+          fontFamily: 'DMSans_400Regular',
+          color: SpillwayColors.bone,
+          fontSize: 15,
+          lineHeight: 22,
+        }}
       >
         {preview}
       </Text>
@@ -282,35 +268,45 @@ export default function HomeScreen() {
                     Haptics.lightTap();
                     router.push('/calendar');
                   }}
-                  className="w-10 h-10 rounded-full bg-white/60 items-center justify-center"
+                  className="w-10 h-10 rounded-full items-center justify-center"
                   style={{
-                    shadowColor: '#2D2A26',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.06,
-                    shadowRadius: 4,
-                    elevation: 2,
+                    backgroundColor: SpillwayColors.charcoal,
+                    borderWidth: 1,
+                    borderColor: SpillwayColors.border,
                   }}
                 >
-                  <Calendar size={18} color="#78716C" strokeWidth={2} />
+                  <Calendar size={18} color={SpillwayColors.mutedText} strokeWidth={2} />
                 </Pressable>
               </Animated.View>
 
               <Animated.View entering={FadeInDown.delay(100).springify()}>
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                  className="text-4xl text-stone-800 mb-2"
+                  style={{
+                    fontFamily: 'DMSans_600SemiBold',
+                    color: SpillwayColors.textLight,
+                    fontSize: 32,
+                    letterSpacing: -0.5,
+                    marginBottom: 8,
+                  }}
                 >
                   {getGreeting(userName)}
                 </Text>
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_400Regular_Italic' }}
-                  className="text-stone-500 text-lg"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.bone,
+                    fontSize: 17,
+                  }}
                 >
                   What do you need to get out?
                 </Text>
                 <Text
-                  style={{ fontFamily: 'DMSans_400Regular' }}
-                  className="text-stone-400 text-sm mt-5"
+                  style={{
+                    fontFamily: 'DMSans_400Regular',
+                    color: SpillwayColors.mutedText,
+                    fontSize: 13,
+                    marginTop: 20,
+                  }}
                 >
                   No streaks. No pressure. Just a place to put the thought.
                 </Text>
@@ -321,20 +317,20 @@ export default function HomeScreen() {
             <View className="px-6 mb-8">
               <View className="flex-row gap-4">
                 <QuickAction
-                  icon={<Mic size={20} color="white" strokeWidth={2} />}
+                  icon={<Mic size={20} color={SpillwayColors.textLight} strokeWidth={2} />}
                   label="Talk it out"
                   sublabel="say what's stuck"
                   onPress={() => router.push('/record')}
                   delay={300}
-                  colors={['#C4775A', '#D4A088']}
+                  colors={[SpillwayColors.ember, SpillwayColors.amber]}
                 />
                 <QuickAction
-                  icon={<PenLine size={20} color="white" strokeWidth={2} />}
+                  icon={<PenLine size={20} color={SpillwayColors.textLight} strokeWidth={2} />}
                   label="Write it down"
                   sublabel="type the mess"
                   onPress={() => router.push('/new-entry')}
                   delay={350}
-                  colors={['#7C8B75', '#9CAA95']}
+                  colors={[SpillwayColors.stoneSage, '#525951']}
                 />
               </View>
 
@@ -345,39 +341,45 @@ export default function HomeScreen() {
                   router.push('/prompts');
                 }}
                 className="mt-4 rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: SpillwayColors.charcoal,
+                  borderWidth: 1,
+                  borderColor: SpillwayColors.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 18,
+                  justifyContent: 'space-between',
+                }}
               >
-                <LinearGradient
-                  colors={['#F5F2EE', '#EBE6E0']}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 18,
-                    justifyContent: 'space-between',
-                  }}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-full bg-stone-300/30 items-center justify-center mr-3">
-                      <Sparkles size={20} color="#8B7355" strokeWidth={2} />
-                    </View>
-                    <View>
-                      <Text
-                        style={{ fontFamily: 'DMSans_500Medium' }}
-                        className="text-stone-700 text-base"
-                      >
-                        Need a nudge?
-                      </Text>
-                      <Text
-                        style={{ fontFamily: 'DMSans_400Regular' }}
-                        className="text-stone-500 text-xs"
-                      >
-                        Browse simple starters
-                      </Text>
-                    </View>
+                <View className="flex-row items-center">
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                    style={{ backgroundColor: `${SpillwayColors.amber}1F` }}
+                  >
+                    <Sparkles size={20} color={SpillwayColors.amber} strokeWidth={2} />
                   </View>
-                  <ChevronRight size={20} color="#9C9690" />
-                </LinearGradient>
+                  <View>
+                    <Text
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.bone,
+                        fontSize: 15,
+                      }}
+                    >
+                      Need a nudge?
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: 'DMSans_400Regular',
+                        color: SpillwayColors.mutedText,
+                        fontSize: 12,
+                      }}
+                    >
+                      Browse simple starters
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={20} color={SpillwayColors.mutedText} />
               </AnimatedPressable>
 
             </View>
@@ -389,8 +391,13 @@ export default function HomeScreen() {
                 className="flex-row items-center justify-between mb-4"
               >
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-stone-500 text-xs uppercase tracking-wider"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.mutedText,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.4,
+                  }}
                 >
                   Recent dumps
                 </Text>
@@ -400,8 +407,7 @@ export default function HomeScreen() {
                     router.push('/entries');
                   }}>
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium', color: '#C4775A' }}
-                      className="text-xs"
+                      style={{ fontFamily: 'DMSans_500Medium', color: SpillwayColors.ember, fontSize: 12 }}
                     >
                       View all
                     </Text>
@@ -416,27 +422,37 @@ export default function HomeScreen() {
               ) : (
                 <Animated.View
                   entering={FadeInDown.delay(400).springify()}
-                  className="bg-white/80 rounded-2xl p-8 items-center"
+                  className="rounded-2xl p-8 items-center"
                   style={{
-                    shadowColor: '#2D2A26',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.03,
-                    shadowRadius: 12,
-                    elevation: 2,
+                    backgroundColor: SpillwayColors.charcoal,
+                    borderWidth: 1,
+                    borderColor: SpillwayColors.border,
                   }}
                 >
-                  <View className="w-16 h-16 rounded-full bg-stone-100 items-center justify-center mb-5">
-                    <PenLine size={28} color="#9C9690" strokeWidth={1.5} />
+                  <View
+                    className="w-16 h-16 rounded-full items-center justify-center mb-5"
+                    style={{ backgroundColor: SpillwayColors.graphite }}
+                  >
+                    <PenLine size={28} color={SpillwayColors.mutedText} strokeWidth={1.5} />
                   </View>
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-                    className="text-stone-600 text-xl text-center mb-2"
+                    style={{
+                      fontFamily: 'DMSans_500Medium',
+                      color: SpillwayColors.bone,
+                      fontSize: 17,
+                      textAlign: 'center',
+                      marginBottom: 8,
+                    }}
                   >
                     Nothing saved yet
                   </Text>
                   <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-stone-400 text-sm text-center"
+                    style={{
+                      fontFamily: 'DMSans_400Regular',
+                      color: SpillwayColors.mutedText,
+                      fontSize: 13,
+                      textAlign: 'center',
+                    }}
                   >
                     Say it, clean it up, then decide whether to keep it.
                   </Text>

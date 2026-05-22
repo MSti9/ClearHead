@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Home, Settings } from 'lucide-react-native';
 import { View } from 'react-native';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 export default function TabLayout() {
   return (
@@ -9,14 +10,14 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FAF8F5',
-          borderTopColor: '#E8E4DE',
+          backgroundColor: SpillwayColors.charcoal,
+          borderTopColor: SpillwayColors.border,
           borderTopWidth: 1,
           height: 88,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: '#C4775A',
-        tabBarInactiveTintColor: '#9C9690',
+        tabBarActiveTintColor: SpillwayColors.ember,
+        tabBarInactiveTintColor: SpillwayColors.mutedText,
         tabBarLabelStyle: {
           fontFamily: 'DMSans_500Medium',
           fontSize: 11,
@@ -31,7 +32,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                backgroundColor: focused ? '#C4775A15' : 'transparent',
+                backgroundColor: focused ? `${SpillwayColors.ember}26` : 'transparent',
                 borderRadius: 12,
                 padding: 8,
               }}
@@ -48,7 +49,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                backgroundColor: focused ? '#C4775A15' : 'transparent',
+                backgroundColor: focused ? `${SpillwayColors.ember}26` : 'transparent',
                 borderRadius: 12,
                 padding: 8,
               }}

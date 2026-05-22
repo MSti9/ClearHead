@@ -6,6 +6,7 @@ import { X, Check, AlertTriangle, Bold, Italic, Heading2, Quote, List, ListOrder
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import * as Haptics from '@/lib/haptics';
 import { insertFormatting } from '@/components/MarkdownText';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 interface SelectionState {
   start: number;
@@ -271,10 +272,15 @@ export default function NewEntryScreen() {
   }) => (
     <Pressable
       onPress={onPress}
-      className="w-12 h-12 rounded-xl items-center justify-center bg-stone-100"
+      className="w-12 h-12 rounded-xl items-center justify-center"
+      style={{
+        backgroundColor: SpillwayColors.charcoal,
+        borderWidth: 1,
+        borderColor: SpillwayColors.border,
+      }}
       accessibilityLabel={label}
     >
-      <Icon size={22} color="#78716C" strokeWidth={2} />
+      <Icon size={22} color={SpillwayColors.mutedText} strokeWidth={2} />
     </Pressable>
   );
 
@@ -282,7 +288,7 @@ export default function NewEntryScreen() {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
-      style={{ backgroundColor: '#FAF8F5' }}
+      style={{ backgroundColor: SpillwayColors.graphite }}
     >
       <SafeAreaView edges={['bottom']} className="flex-1">
         {/* Header */}
@@ -293,12 +299,23 @@ export default function NewEntryScreen() {
         >
           <Pressable
             onPress={handleClose}
-            className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center"
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{
+              backgroundColor: SpillwayColors.charcoal,
+              borderWidth: 1,
+              borderColor: SpillwayColors.border,
+            }}
           >
-            <X size={20} color="#78716C" strokeWidth={2} />
+            <X size={20} color={SpillwayColors.mutedText} strokeWidth={2} />
           </Pressable>
           <Pressable onPress={() => setShowFormatBar(!showFormatBar)}>
-            <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-sm">
+            <Text
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                fontSize: 13,
+              }}
+            >
               {wordCount > 0 ? `${wordCount} words` : 'New entry'}
             </Text>
           </Pressable>
@@ -306,9 +323,17 @@ export default function NewEntryScreen() {
             onPress={handleSave}
             disabled={!hasContent}
             className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: hasContent ? '#7C8B75' : '#E8E4DE' }}
+            style={{
+              backgroundColor: hasContent ? SpillwayColors.ember : SpillwayColors.charcoal,
+              borderWidth: hasContent ? 0 : 1,
+              borderColor: SpillwayColors.border,
+            }}
           >
-            <Check size={20} color={hasContent ? 'white' : '#9C9690'} strokeWidth={2.5} />
+            <Check
+              size={20}
+              color={hasContent ? SpillwayColors.textLight : SpillwayColors.mutedText}
+              strokeWidth={2.5}
+            />
           </Pressable>
         </Animated.View>
 
@@ -322,17 +347,32 @@ export default function NewEntryScreen() {
             {promptText && (
               <Animated.View
                 entering={FadeInDown.delay(100).springify()}
-                className="bg-stone-100 rounded-2xl p-4 mb-6"
+                className="rounded-2xl p-4 mb-6"
+                style={{
+                  backgroundColor: SpillwayColors.charcoal,
+                  borderWidth: 1,
+                  borderColor: SpillwayColors.border,
+                }}
               >
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-stone-400 text-xs uppercase tracking-wider mb-2"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.mutedText,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.4,
+                    marginBottom: 8,
+                  }}
                 >
                   Prompt
                 </Text>
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                  className="text-stone-700 text-lg leading-6"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.bone,
+                    fontSize: 17,
+                    lineHeight: 26,
+                  }}
                 >
                   {promptText}
                 </Text>
@@ -344,18 +384,29 @@ export default function NewEntryScreen() {
               {!promptText && (
                 <View className="flex-row items-center justify-between mb-4">
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                    className="text-stone-400 text-xl"
+                    style={{
+                      fontFamily: 'DMSans_500Medium',
+                      color: SpillwayColors.mutedText,
+                      fontSize: 18,
+                    }}
                   >
                     What is on your mind?
                   </Text>
                   <Pressable
                     onPress={() => setShowFormatBar(!showFormatBar)}
-                    className="px-3 py-1.5 rounded-full bg-stone-100"
+                    className="px-3 py-1.5 rounded-full"
+                    style={{
+                      backgroundColor: SpillwayColors.charcoal,
+                      borderWidth: 1,
+                      borderColor: SpillwayColors.border,
+                    }}
                   >
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-stone-500 text-xs"
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.mutedText,
+                        fontSize: 12,
+                      }}
                     >
                       {showFormatBar ? 'Hide format' : 'Format'}
                     </Text>
@@ -369,7 +420,7 @@ export default function NewEntryScreen() {
                 onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                 onFocus={() => setShowFormatBar(true)}
                 placeholder="Start writing..."
-                placeholderTextColor="#9C9690"
+                placeholderTextColor={SpillwayColors.mutedText}
                 multiline
                 textAlignVertical="top"
                 style={{
@@ -377,7 +428,7 @@ export default function NewEntryScreen() {
                   fontFamily: currentFont.fontFamily,
                   fontSize: selectedFont === 'serif' ? 18 : 16,
                   lineHeight: selectedFont === 'serif' ? 30 : 26,
-                  color: '#44403C',
+                  color: SpillwayColors.bone,
                   minHeight: 200,
                 }}
                 className="pb-8"
@@ -393,8 +444,12 @@ export default function NewEntryScreen() {
             className="px-6 pb-4"
           >
             <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-400 text-xs text-center"
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                fontSize: 12,
+                textAlign: 'center',
+              }}
             >
               Write freely. No one else will see this.
             </Text>
@@ -405,8 +460,12 @@ export default function NewEntryScreen() {
         {showFormatBar && (
           <Animated.View
             entering={FadeInUp.duration(200)}
-            className="px-6 pb-4 pt-3 border-t border-stone-200"
-            style={{ backgroundColor: '#FAF8F5' }}
+            className="px-6 pb-4 pt-3"
+            style={{
+              backgroundColor: SpillwayColors.charcoal,
+              borderTopWidth: 1,
+              borderTopColor: SpillwayColors.border,
+            }}
           >
             {/* Font Picker Row */}
             {showFontPicker && (
@@ -423,20 +482,27 @@ export default function NewEntryScreen() {
                     }}
                     className="flex-1 py-3 px-3 rounded-xl items-center"
                     style={{
-                      backgroundColor: selectedFont === font.id ? '#E8E4DE' : '#F5F2EE',
-                      borderWidth: selectedFont === font.id ? 1 : 0,
-                      borderColor: '#C9C4BC',
+                      backgroundColor: selectedFont === font.id ? SpillwayColors.graphite : SpillwayColors.charcoal,
+                      borderWidth: 1,
+                      borderColor: selectedFont === font.id ? SpillwayColors.ember : SpillwayColors.border,
                     }}
                   >
                     <Text
-                      style={{ fontFamily: font.fontFamily }}
-                      className="text-xl text-stone-700 mb-1"
+                      style={{
+                        fontFamily: font.fontFamily,
+                        color: SpillwayColors.bone,
+                        fontSize: 18,
+                        marginBottom: 4,
+                      }}
                     >
                       {font.preview}
                     </Text>
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-xs text-stone-500"
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.mutedText,
+                        fontSize: 11,
+                      }}
                     >
                       {font.label}
                     </Text>
@@ -459,13 +525,24 @@ export default function NewEntryScreen() {
                   setShowFontPicker(!showFontPicker);
                 }}
                 className="w-12 h-12 rounded-xl items-center justify-center"
-                style={{ backgroundColor: showFontPicker ? '#E8E4DE' : '#F5F2EE' }}
+                style={{
+                  backgroundColor: showFontPicker ? SpillwayColors.graphite : SpillwayColors.charcoal,
+                  borderWidth: 1,
+                  borderColor: showFontPicker ? SpillwayColors.ember : SpillwayColors.border,
+                }}
                 accessibilityLabel="Change font"
               >
-                <Type size={22} color={showFontPicker ? '#5C5650' : '#78716C'} strokeWidth={2} />
+                <Type
+                  size={22}
+                  color={showFontPicker ? SpillwayColors.ember : SpillwayColors.mutedText}
+                  strokeWidth={2}
+                />
               </Pressable>
 
-              <View className="w-px h-8 bg-stone-200 self-center" />
+              <View
+                className="w-px h-8 self-center"
+                style={{ backgroundColor: SpillwayColors.border }}
+              />
 
               <FormatButton icon={Bold} onPress={() => handleFormat('bold')} label="Bold" />
               <FormatButton icon={Italic} onPress={() => handleFormat('italic')} label="Italic" />
@@ -486,28 +563,45 @@ export default function NewEntryScreen() {
         onRequestClose={() => setShowDiscardModal(false)}
       >
         <Pressable
-          className="flex-1 bg-black/50 items-center justify-center px-8"
+          className="flex-1 items-center justify-center px-8"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
           onPress={() => setShowDiscardModal(false)}
         >
           <Pressable
-            className="bg-white rounded-3xl p-6 w-full max-w-sm"
+            className="rounded-3xl p-6 w-full max-w-sm"
+            style={{
+              backgroundColor: SpillwayColors.charcoal,
+              borderWidth: 1,
+              borderColor: SpillwayColors.border,
+            }}
             onPress={(e) => e.stopPropagation()}
           >
             <View className="items-center mb-4">
-              <View className="w-12 h-12 rounded-full bg-amber-100 items-center justify-center mb-3">
-                <AlertTriangle size={24} color="#D97706" />
+              <View
+                className="w-12 h-12 rounded-full items-center justify-center mb-3"
+                style={{ backgroundColor: `${SpillwayColors.amber}26` }}
+              >
+                <AlertTriangle size={24} color={SpillwayColors.amber} />
               </View>
               <Text
-                style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                className="text-stone-800 text-xl text-center"
+                style={{
+                  fontFamily: 'DMSans_600SemiBold',
+                  color: SpillwayColors.textLight,
+                  fontSize: 20,
+                  textAlign: 'center',
+                }}
               >
                 Discard entry?
               </Text>
             </View>
 
             <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-500 text-center mb-6"
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                textAlign: 'center',
+                marginBottom: 24,
+              }}
             >
               You have unsaved writing. Are you sure you want to leave without saving?
             </Text>
@@ -518,11 +612,19 @@ export default function NewEntryScreen() {
                   Haptics.lightTap();
                   setShowDiscardModal(false);
                 }}
-                className="py-3.5 rounded-2xl bg-stone-100"
+                className="py-3.5 rounded-2xl"
+                style={{
+                  backgroundColor: SpillwayColors.graphite,
+                  borderWidth: 1,
+                  borderColor: SpillwayColors.border,
+                }}
               >
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-stone-700 text-center"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.bone,
+                    textAlign: 'center',
+                  }}
                 >
                   Keep writing
                 </Text>
@@ -531,11 +633,14 @@ export default function NewEntryScreen() {
               <Pressable
                 onPress={handleConfirmDiscard}
                 className="py-3.5 rounded-2xl"
-                style={{ backgroundColor: '#C4775A' }}
+                style={{ backgroundColor: SpillwayColors.ember }}
               >
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-white text-center"
+                  style={{
+                    fontFamily: 'DMSans_600SemiBold',
+                    color: SpillwayColors.textLight,
+                    textAlign: 'center',
+                  }}
                 >
                   Discard
                 </Text>

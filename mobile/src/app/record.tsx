@@ -20,6 +20,7 @@ import { Audio } from 'expo-av';
 import * as Haptics from '@/lib/haptics';
 import { formatTranscription } from '@/lib/formatTranscription';
 import { transcribeAudio } from '@/lib/apiClient';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -66,7 +67,7 @@ function PulsingRing() {
           height: 160,
           borderRadius: 80,
           borderWidth: 3,
-          borderColor: '#C4775A',
+          borderColor: SpillwayColors.ember,
         },
         animatedStyle,
       ]}
@@ -109,7 +110,7 @@ function WaveformBar({ index, isRecording }: { index: number; isRecording: boole
         {
           width: 4,
           borderRadius: 2,
-          backgroundColor: '#C4775A',
+          backgroundColor: SpillwayColors.ember,
           marginHorizontal: 2,
         },
         animatedStyle,
@@ -288,7 +289,7 @@ export default function RecordScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
+    <View className="flex-1" style={{ backgroundColor: SpillwayColors.graphite }}>
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
         {/* Header */}
         <Animated.View
@@ -298,12 +299,23 @@ export default function RecordScreen() {
           <Pressable
             onPress={handleClose}
             disabled={isTranscribing}
-            className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center"
-            style={{ opacity: isTranscribing ? 0.5 : 1 }}
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{
+              backgroundColor: SpillwayColors.charcoal,
+              borderWidth: 1,
+              borderColor: SpillwayColors.border,
+              opacity: isTranscribing ? 0.5 : 1,
+            }}
           >
-            <X size={20} color="#78716C" strokeWidth={2} />
+            <X size={20} color={SpillwayColors.mutedText} strokeWidth={2} />
           </Pressable>
-          <Text style={{ fontFamily: 'DMSans_500Medium' }} className="text-stone-500">
+          <Text
+            style={{
+              fontFamily: 'DMSans_500Medium',
+              color: SpillwayColors.mutedText,
+              fontSize: 14,
+            }}
+          >
             Talk it out
           </Text>
           <View className="w-10" />
@@ -314,14 +326,23 @@ export default function RecordScreen() {
           {/* Prompt Text */}
           <Animated.View entering={FadeInDown.delay(200).springify()} className="items-center mb-12">
             <Text
-              style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-              className="text-2xl text-stone-600 text-center mb-2"
+              style={{
+                fontFamily: 'DMSans_500Medium',
+                color: SpillwayColors.bone,
+                fontSize: 20,
+                textAlign: 'center',
+                marginBottom: 8,
+              }}
             >
               {getPromptText()}
             </Text>
             <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-400 text-center"
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                fontSize: 13,
+                textAlign: 'center',
+              }}
             >
               {getSubText()}
             </Text>
@@ -342,15 +363,20 @@ export default function RecordScreen() {
           {/* Transcribing indicator */}
           {isTranscribing && (
             <Animated.View entering={FadeIn} className="mb-8">
-              <ActivityIndicator size="large" color="#C4775A" />
+              <ActivityIndicator size="large" color={SpillwayColors.ember} />
             </Animated.View>
           )}
 
           {/* Duration */}
           <Animated.Text
             entering={FadeInDown.delay(300).springify()}
-            style={{ fontFamily: 'DMSans_600SemiBold' }}
-            className="text-4xl text-stone-700 mb-12"
+            style={{
+              fontFamily: 'DMSans_600SemiBold',
+              color: SpillwayColors.bone,
+              fontSize: 36,
+              marginBottom: 48,
+              letterSpacing: -0.5,
+            }}
           >
             {formatDuration(duration)}
           </Animated.Text>
@@ -370,8 +396,8 @@ export default function RecordScreen() {
                 <LinearGradient
                   colors={
                     isRecording
-                      ? (['#DC6B6B', '#C45C5C'] as [string, string])
-                      : (['#C4775A', '#D4A088'] as [string, string])
+                      ? (['#9C3A2A', '#7A2A1F'] as [string, string])
+                      : ([SpillwayColors.ember, SpillwayColors.amber] as [string, string])
                   }
                   style={{
                     width: 160,
@@ -384,9 +410,9 @@ export default function RecordScreen() {
                   end={{ x: 1, y: 1 }}
                 >
                   {isRecording ? (
-                    <Square size={48} color="white" fill="white" strokeWidth={0} />
+                    <Square size={48} color={SpillwayColors.textLight} fill={SpillwayColors.textLight} strokeWidth={0} />
                   ) : (
-                    <Mic size={48} color="white" strokeWidth={2} />
+                    <Mic size={48} color={SpillwayColors.textLight} strokeWidth={2} />
                   )}
                 </LinearGradient>
               </AnimatedPressable>
@@ -402,12 +428,17 @@ export default function RecordScreen() {
               {isRecording && (
                 <Pressable
                   onPress={pauseRecording}
-                  className="w-14 h-14 rounded-full bg-stone-200 items-center justify-center"
+                  className="w-14 h-14 rounded-full items-center justify-center"
+                  style={{
+                    backgroundColor: SpillwayColors.charcoal,
+                    borderWidth: 1,
+                    borderColor: SpillwayColors.border,
+                  }}
                 >
                   {isPaused ? (
-                    <Play size={24} color="#78716C" strokeWidth={2} />
+                    <Play size={24} color={SpillwayColors.bone} strokeWidth={2} />
                   ) : (
-                    <Pause size={24} color="#78716C" strokeWidth={2} />
+                    <Pause size={24} color={SpillwayColors.bone} strokeWidth={2} />
                   )}
                 </Pressable>
               )}
@@ -415,16 +446,21 @@ export default function RecordScreen() {
                 <>
                   <Pressable
                     onPress={handleReRecord}
-                    className="w-14 h-14 rounded-full bg-stone-200 items-center justify-center"
+                    className="w-14 h-14 rounded-full items-center justify-center"
+                    style={{
+                      backgroundColor: SpillwayColors.charcoal,
+                      borderWidth: 1,
+                      borderColor: SpillwayColors.border,
+                    }}
                   >
-                    <RotateCcw size={24} color="#78716C" strokeWidth={2} />
+                    <RotateCcw size={24} color={SpillwayColors.bone} strokeWidth={2} />
                   </Pressable>
                   <Pressable
                     onPress={saveRecording}
                     className="w-14 h-14 rounded-full items-center justify-center"
-                    style={{ backgroundColor: '#7C8B75' }}
+                    style={{ backgroundColor: SpillwayColors.stoneSage }}
                   >
-                    <Check size={24} color="white" strokeWidth={2.5} />
+                    <Check size={24} color={SpillwayColors.textLight} strokeWidth={2.5} />
                   </Pressable>
                 </>
               )}
@@ -435,8 +471,12 @@ export default function RecordScreen() {
         {/* Bottom hint */}
         <Animated.View entering={FadeInDown.delay(600).springify()} className="px-6 pb-6">
           <Text
-            style={{ fontFamily: 'DMSans_400Regular' }}
-            className="text-stone-400 text-xs text-center"
+            style={{
+              fontFamily: 'DMSans_400Regular',
+              color: SpillwayColors.mutedText,
+              fontSize: 12,
+              textAlign: 'center',
+            }}
           >
             {isTranscribing
               ? 'This usually takes a few seconds'

@@ -12,7 +12,7 @@ export async function exportAsText(entries: JournalEntry[]): Promise<void> {
     throw new Error('No entries to export');
   }
 
-  const header = `CLEARHEAD EXPORT
+  const header = `SPILLWAY EXPORT
 Generated: ${format(new Date(), 'MMMM d, yyyy')}
 Total Entries: ${entries.length}
 ${'='.repeat(50)}
@@ -34,7 +34,7 @@ ${prompt}${entry.content}
     .join('\n');
 
   const fullContent = header + content;
-  const fileName = `clearhead-export-${format(new Date(), 'yyyy-MM-dd')}.txt`;
+  const fileName = `spillway-export-${format(new Date(), 'yyyy-MM-dd')}.txt`;
   const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
   await FileSystem.writeAsStringAsync(filePath, fullContent, {
@@ -176,7 +176,7 @@ export async function exportYearInReview(entries: JournalEntry[]): Promise<void>
   }
 
   const currentYear = new Date().getFullYear();
-  const fileName = `clearhead-${currentYear}-review.txt`;
+  const fileName = `spillway-${currentYear}-review.txt`;
   const filePath = `${FileSystem.cacheDirectory}${fileName}`;
 
   await FileSystem.writeAsStringAsync(filePath, review, {
