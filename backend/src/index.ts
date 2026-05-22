@@ -2,7 +2,6 @@ import "@vibecodeapp/proxy"; // DO NOT REMOVE OTHERWISE VIBECODE PROXY WILL NOT 
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import "./env";
-import { sampleRouter } from "./routes/sample";
 import { aiRouter } from "./routes/ai";
 import { logger } from "hono/logger";
 
@@ -32,7 +31,6 @@ app.use("*", logger());
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 // Routes
-app.route("/api/sample", sampleRouter);
 app.route("/api/ai", aiRouter);
 
 const port = Number(process.env.PORT) || 3000;

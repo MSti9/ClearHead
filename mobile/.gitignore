@@ -30,7 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — never commit .env;
+# commit a placeholder schema as .env.example instead.
+.env
 .env*.local
 
 # typescript
