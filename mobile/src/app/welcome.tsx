@@ -16,10 +16,13 @@ import Animated, {
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
 import { BrainLogo } from '@/components/BrainLogo';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 function WelcomeOrb() {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.3);
+  // Subtle "pilot light, not a construction sign" — kept low against the
+  // graphite background so the orb reads as ambient warmth, not a focal point.
+  const opacity = useSharedValue(0.15);
 
   useEffect(() => {
     scale.value = withRepeat(
@@ -32,8 +35,8 @@ function WelcomeOrb() {
     );
     opacity.value = withRepeat(
       withSequence(
-        withTiming(0.45, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.3, { duration: 6000, easing: Easing.inOut(Easing.ease) })
+        withTiming(0.25, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.15, { duration: 6000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       false
@@ -60,7 +63,7 @@ function WelcomeOrb() {
       ]}
     >
       <LinearGradient
-        colors={['#D4A088', '#E8CFC0', '#F5E6DC']}
+        colors={[SpillwayColors.ember, SpillwayColors.amber, SpillwayColors.charcoal]}
         style={{
           width: '100%',
           height: '100%',
@@ -100,7 +103,7 @@ export default function WelcomeScreen() {
   return (
     <View className="flex-1">
       <LinearGradient
-        colors={['#FDF8F5', '#FAF4EF']}
+        colors={[SpillwayColors.graphite, SpillwayColors.charcoal]}
         style={{ flex: 1 }}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -126,22 +129,38 @@ export default function WelcomeScreen() {
                   </View>
 
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                    className="text-3xl text-stone-800 text-center mb-2"
+                    style={{
+                      fontFamily: 'DMSans_600SemiBold',
+                      color: SpillwayColors.textLight,
+                      fontSize: 30,
+                      letterSpacing: -0.5,
+                      textAlign: 'center',
+                      marginBottom: 8,
+                    }}
                   >
-                    ClearHead
+                    Spillway
                   </Text>
 
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-                    className="text-base text-stone-500 text-center mb-8"
+                    style={{
+                      fontFamily: 'DMSans_400Regular',
+                      color: SpillwayColors.mutedText,
+                      fontSize: 14,
+                      textAlign: 'center',
+                      marginBottom: 32,
+                    }}
                   >
-                    A calm space to clear your mind
+                    Brain dumps, cleaned up.
                   </Text>
 
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                    className="text-xl text-stone-700 text-center mb-6"
+                    style={{
+                      fontFamily: 'DMSans_500Medium',
+                      color: SpillwayColors.bone,
+                      fontSize: 17,
+                      textAlign: 'center',
+                      marginBottom: 24,
+                    }}
                   >
                     What's your name?
                   </Text>
@@ -152,19 +171,19 @@ export default function WelcomeScreen() {
                     onChangeText={setName}
                     onSubmitEditing={handleContinue}
                     placeholder=""
-                    placeholderTextColor="#C9C4BC"
+                    placeholderTextColor={SpillwayColors.mutedText}
                     autoCapitalize="words"
                     autoCorrect={false}
                     returnKeyType="done"
                     style={{
-                      fontFamily: 'CormorantGaramond_500Medium',
-                      fontSize: 28,
-                      color: '#44403C',
+                      fontFamily: 'DMSans_500Medium',
+                      fontSize: 24,
+                      color: SpillwayColors.textLight,
                       textAlign: 'center',
                       width: '100%',
                       paddingVertical: 12,
                       borderBottomWidth: 1,
-                      borderBottomColor: '#E8E4DE',
+                      borderBottomColor: SpillwayColors.border,
                       marginBottom: 80,
                     }}
                   />
@@ -178,17 +197,20 @@ export default function WelcomeScreen() {
                   disabled={!canContinue}
                   className="py-4 rounded-2xl items-center"
                   style={{
-                    backgroundColor: canContinue ? '#7C8B75' : '#E8E4DE',
+                    backgroundColor: canContinue ? SpillwayColors.ember : SpillwayColors.charcoal,
+                    borderWidth: 1,
+                    borderColor: canContinue ? SpillwayColors.ember : SpillwayColors.border,
                   }}
                 >
                   <Text
-                    style={{ fontFamily: 'DMSans_500Medium' }}
-                    className="text-base"
+                    style={{
+                      fontFamily: 'DMSans_600SemiBold',
+                      fontSize: 16,
+                      color: canContinue ? SpillwayColors.textLight : SpillwayColors.mutedText,
+                    }}
                     selectable={false}
                   >
-                    <Text style={{ color: canContinue ? 'white' : '#9C9690' }}>
-                      Continue
-                    </Text>
+                    Continue
                   </Text>
                 </Pressable>
               </Animated.View>

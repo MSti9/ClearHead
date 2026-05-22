@@ -18,6 +18,7 @@ import { useMutation } from '@tanstack/react-query';
 import { reflectOnDump, type ReflectionResponse } from '@/lib/apiClient';
 import { useJournalStore } from '@/stores/journalStore';
 import * as Haptics from '@/lib/haptics';
+import { SpillwayColors } from '@/lib/spillwayColors';
 
 type EntryTypeParam = 'text' | 'voice' | 'prompted';
 
@@ -109,19 +110,21 @@ export default function ReflectionScreen() {
     if (!reflection) return;
     Haptics.mediumTap();
     setIsDissolving(true);
-    // Reflection dissolves first, then the screen darkens, then we leave.
+    // Reflection dissolves, screen darkens to graphite, the v4-locked
+    // "Gone. / Nothing saved. Nothing to reopen." appears, then we leave.
+    // Timing budget is set so the subcopy is on screen long enough to read.
     fadeOpacity.value = withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) });
     dimOpacity.value = withDelay(
       400,
       withSequence(
         withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 700 })
+        withTiming(1, { duration: 2000 })
       )
     );
     // NOTHING is saved. Just leave.
     setTimeout(() => {
       router.replace('/(tabs)');
-    }, 1800);
+    }, 3000);
   };
 
   const handleKeepTalking = () => {
@@ -142,7 +145,7 @@ export default function ReflectionScreen() {
   const dimStyle = useAnimatedStyle(() => ({ opacity: dimOpacity.value }));
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#FAF8F5' }}>
+    <View className="flex-1" style={{ backgroundColor: SpillwayColors.graphite }}>
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
         {/* Close (hidden during dissolve) */}
         {!isDissolving && (
@@ -153,11 +156,16 @@ export default function ReflectionScreen() {
             <Pressable
               onPress={handleClose}
               disabled={isLoading}
-              className="w-10 h-10 rounded-full bg-stone-100 items-center justify-center"
-              style={{ opacity: isLoading ? 0.4 : 1 }}
+              className="w-10 h-10 rounded-full items-center justify-center"
+              style={{
+                backgroundColor: SpillwayColors.charcoal,
+                borderWidth: 1,
+                borderColor: SpillwayColors.border,
+                opacity: isLoading ? 0.4 : 1,
+              }}
               accessibilityLabel="Close"
             >
-              <X size={20} color="#78716C" strokeWidth={2} />
+              <X size={20} color={SpillwayColors.mutedText} strokeWidth={2} />
             </Pressable>
             <View className="w-10" />
           </Animated.View>
@@ -169,16 +177,26 @@ export default function ReflectionScreen() {
             entering={FadeIn.delay(50)}
             className="flex-1 items-center justify-center px-8"
           >
-            <ActivityIndicator size="large" color="#C4775A" />
+            <ActivityIndicator size="large" color={SpillwayColors.ember} />
             <Text
-              style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-              className="text-2xl text-stone-600 text-center mt-6"
+              style={{
+                fontFamily: 'DMSans_500Medium',
+                color: SpillwayColors.bone,
+                fontSize: 20,
+                textAlign: 'center',
+                marginTop: 24,
+              }}
             >
               Cleaning up the mess…
             </Text>
             <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-400 text-sm text-center mt-2"
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                fontSize: 13,
+                textAlign: 'center',
+                marginTop: 8,
+              }}
             >
               A few seconds.
             </Text>
@@ -192,33 +210,44 @@ export default function ReflectionScreen() {
             className="flex-1 items-center justify-center px-8"
           >
             <Text
-              style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-              className="text-2xl text-stone-700 text-center mb-3"
+              style={{
+                fontFamily: 'DMSans_500Medium',
+                color: SpillwayColors.bone,
+                fontSize: 20,
+                textAlign: 'center',
+                marginBottom: 12,
+              }}
             >
               Couldn't clean it up.
             </Text>
             <Text
-              style={{ fontFamily: 'DMSans_400Regular' }}
-              className="text-stone-500 text-center mb-8"
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                textAlign: 'center',
+                marginBottom: 32,
+              }}
             >
               Connection hiccup. The words you said are still here — try again.
             </Text>
             <Pressable
               onPress={handleRetry}
               className="py-3 px-8 rounded-2xl"
-              style={{ backgroundColor: '#7C8B75' }}
+              style={{ backgroundColor: SpillwayColors.ember }}
             >
               <Text
-                style={{ fontFamily: 'DMSans_500Medium' }}
-                className="text-white text-base"
+                style={{ fontFamily: 'DMSans_500Medium', color: SpillwayColors.textLight, fontSize: 16 }}
               >
                 Try again
               </Text>
             </Pressable>
             <Pressable onPress={handleClose} className="mt-4 py-2 px-4">
               <Text
-                style={{ fontFamily: 'DMSans_400Regular' }}
-                className="text-stone-400 text-sm"
+                style={{
+                  fontFamily: 'DMSans_400Regular',
+                  color: SpillwayColors.mutedText,
+                  fontSize: 13,
+                }}
               >
                 Back home
               </Text>
@@ -237,33 +266,52 @@ export default function ReflectionScreen() {
               {/* Header */}
               <Animated.View entering={FadeInDown.delay(80).springify()} className="mb-8">
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
-                  className="text-3xl text-stone-800"
+                  style={{
+                    fontFamily: 'DMSans_600SemiBold',
+                    color: SpillwayColors.textLight,
+                    fontSize: 28,
+                    letterSpacing: -0.5,
+                  }}
                 >
-                  Here's what I heard.
+                  The clear version.
                 </Text>
               </Animated.View>
 
               {/* Safety message (when triggered) — surfaced before the 3 sections
-                  so the support routing is impossible to miss. */}
+                  so the support routing is impossible to miss. v4 tone:
+                  held, not alarmed. Dark warm surface, amber accent. */}
               {isSafety && reflection.support_message && (
                 <Animated.View
                   entering={FadeInDown.delay(140).springify()}
                   className="rounded-2xl p-5 mb-8"
-                  style={{ backgroundColor: '#FEF3EE', borderWidth: 1, borderColor: '#E8C9B8' }}
+                  style={{
+                    backgroundColor: SpillwayColors.safetySurface,
+                    borderWidth: 1,
+                    borderColor: SpillwayColors.safetyBorder,
+                  }}
                 >
                   <View className="flex-row items-center mb-3">
-                    <LifeBuoy size={18} color="#B45F40" strokeWidth={2} />
+                    <LifeBuoy size={18} color={SpillwayColors.safetyAccent} strokeWidth={2} />
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-stone-700 text-xs uppercase tracking-wider ml-2"
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.safetyAccent,
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: 1.2,
+                        marginLeft: 8,
+                      }}
                     >
                       Support
                     </Text>
                   </View>
                   <Text
-                    style={{ fontFamily: 'DMSans_400Regular' }}
-                    className="text-stone-700 text-base leading-6"
+                    style={{
+                      fontFamily: 'DMSans_400Regular',
+                      color: SpillwayColors.bone,
+                      fontSize: 16,
+                      lineHeight: 24,
+                    }}
                   >
                     {reflection.support_message}
                   </Text>
@@ -273,14 +321,24 @@ export default function ReflectionScreen() {
               {/* Section 1: What you said */}
               <Animated.View entering={FadeInDown.delay(220).springify()} className="mb-8">
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-stone-400 text-xs uppercase tracking-wider mb-2"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.mutedText,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.4,
+                    marginBottom: 8,
+                  }}
                 >
                   What you said
                 </Text>
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                  className="text-stone-800 text-xl leading-8"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.bone,
+                    fontSize: 19,
+                    lineHeight: 30,
+                  }}
                 >
                   {reflection.what_you_said}
                 </Text>
@@ -289,31 +347,51 @@ export default function ReflectionScreen() {
               {/* Section 2: What's underneath */}
               <Animated.View entering={FadeInDown.delay(560).springify()} className="mb-8">
                 <Text
-                  style={{ fontFamily: 'DMSans_500Medium' }}
-                  className="text-stone-400 text-xs uppercase tracking-wider mb-2"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.mutedText,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.4,
+                    marginBottom: 8,
+                  }}
                 >
                   What's underneath
                 </Text>
                 <Text
-                  style={{ fontFamily: 'CormorantGaramond_500Medium' }}
-                  className="text-stone-800 text-xl leading-8"
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    color: SpillwayColors.bone,
+                    fontSize: 19,
+                    lineHeight: 30,
+                  }}
                 >
                   {reflection.whats_underneath}
                 </Text>
               </Animated.View>
 
-              {/* Section 3: One thing to let go — hidden when safety_flag */}
+              {/* Section 3: What to put down — hidden when safety_flag */}
               {!isSafety && reflection.let_go_of && (
                 <Animated.View entering={FadeInDown.delay(900).springify()} className="mb-4">
                   <Text
-                    style={{ fontFamily: 'DMSans_500Medium' }}
-                    className="text-stone-400 text-xs uppercase tracking-wider mb-2"
+                    style={{
+                      fontFamily: 'DMSans_500Medium',
+                      color: SpillwayColors.mutedText,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: 1.4,
+                      marginBottom: 8,
+                    }}
                   >
-                    One thing to let go
+                    What to put down
                   </Text>
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_500Medium_Italic' }}
-                    className="text-stone-700 text-xl leading-8"
+                    style={{
+                      fontFamily: 'DMSans_400Regular',
+                      color: SpillwayColors.bone,
+                      fontSize: 19,
+                      lineHeight: 30,
+                    }}
                   >
                     {reflection.let_go_of}
                   </Text>
@@ -332,13 +410,17 @@ export default function ReflectionScreen() {
                   <Pressable
                     onPress={handleSafeExit}
                     className="py-4 rounded-2xl flex-row items-center justify-center"
-                    style={{ backgroundColor: '#C4775A' }}
+                    style={{ backgroundColor: SpillwayColors.ember }}
                     accessibilityLabel="I'm safe right now"
                   >
-                    <Phone size={18} color="white" strokeWidth={2} />
+                    <Phone size={18} color={SpillwayColors.textLight} strokeWidth={2} />
                     <Text
-                      style={{ fontFamily: 'DMSans_600SemiBold' }}
-                      className="text-white text-base ml-2"
+                      style={{
+                        fontFamily: 'DMSans_600SemiBold',
+                        color: SpillwayColors.textLight,
+                        fontSize: 16,
+                        marginLeft: 8,
+                      }}
                     >
                       I'm safe right now
                     </Text>
@@ -346,20 +428,32 @@ export default function ReflectionScreen() {
                   <Pressable
                     onPress={handleSave}
                     className="py-3.5 rounded-2xl"
-                    style={{ backgroundColor: '#F0EBE5' }}
+                    style={{
+                      backgroundColor: SpillwayColors.charcoal,
+                      borderWidth: 1,
+                      borderColor: SpillwayColors.border,
+                    }}
                     accessibilityLabel="Save it"
                   >
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-stone-700 text-center text-base"
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.bone,
+                        fontSize: 16,
+                        textAlign: 'center',
+                      }}
                     >
                       Save it
                     </Text>
                   </Pressable>
                   <Pressable onPress={handleSafeExit} className="py-2">
                     <Text
-                      style={{ fontFamily: 'DMSans_400Regular' }}
-                      className="text-stone-400 text-center text-sm"
+                      style={{
+                        fontFamily: 'DMSans_400Regular',
+                        color: SpillwayColors.mutedText,
+                        fontSize: 13,
+                        textAlign: 'center',
+                      }}
                     >
                       Close
                     </Text>
@@ -371,12 +465,16 @@ export default function ReflectionScreen() {
                   <AnimatedPressable
                     onPress={handleLetItGo}
                     className="py-5 rounded-2xl mb-3"
-                    style={{ backgroundColor: '#C4775A' }}
+                    style={{ backgroundColor: SpillwayColors.ember }}
                     accessibilityLabel="Let it go"
                   >
                     <Text
-                      style={{ fontFamily: 'DMSans_600SemiBold' }}
-                      className="text-white text-center text-lg"
+                      style={{
+                        fontFamily: 'DMSans_600SemiBold',
+                        color: SpillwayColors.textLight,
+                        fontSize: 18,
+                        textAlign: 'center',
+                      }}
                     >
                       Let it go
                     </Text>
@@ -384,12 +482,20 @@ export default function ReflectionScreen() {
                   <Pressable
                     onPress={handleSave}
                     className="py-3 rounded-2xl mb-2"
-                    style={{ backgroundColor: '#F0EBE5' }}
+                    style={{
+                      backgroundColor: SpillwayColors.charcoal,
+                      borderWidth: 1,
+                      borderColor: SpillwayColors.border,
+                    }}
                     accessibilityLabel="Save it"
                   >
                     <Text
-                      style={{ fontFamily: 'DMSans_500Medium' }}
-                      className="text-stone-700 text-center text-base"
+                      style={{
+                        fontFamily: 'DMSans_500Medium',
+                        color: SpillwayColors.bone,
+                        fontSize: 16,
+                        textAlign: 'center',
+                      }}
                     >
                       Save it
                     </Text>
@@ -400,8 +506,12 @@ export default function ReflectionScreen() {
                     accessibilityLabel="Keep talking"
                   >
                     <Text
-                      style={{ fontFamily: 'DMSans_400Regular' }}
-                      className="text-stone-400 text-center text-sm"
+                      style={{
+                        fontFamily: 'DMSans_400Regular',
+                        color: SpillwayColors.mutedText,
+                        fontSize: 13,
+                        textAlign: 'center',
+                      }}
                     >
                       Keep talking
                     </Text>
@@ -412,7 +522,8 @@ export default function ReflectionScreen() {
           </Animated.View>
         )}
 
-        {/* Dissolve overlay — fades in over the screen on Let it go, then a short closing line. */}
+        {/* Dissolve overlay — fades in over the screen on Let it go, then the
+            v4-locked close: "Gone." with "Nothing saved. Nothing to reopen." */}
         {isDissolving && (
           <Animated.View
             pointerEvents="none"
@@ -423,9 +534,10 @@ export default function ReflectionScreen() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: '#1F1B17',
+                backgroundColor: SpillwayColors.graphite,
                 alignItems: 'center',
                 justifyContent: 'center',
+                paddingHorizontal: 32,
               },
               dimStyle,
             ]}
@@ -434,12 +546,27 @@ export default function ReflectionScreen() {
               entering={FadeIn.delay(700).duration(500)}
               exiting={FadeOut.duration(300)}
               style={{
-                fontFamily: 'CormorantGaramond_500Medium_Italic',
-                color: '#F0EBE5',
-                fontSize: 28,
+                fontFamily: 'DMSans_600SemiBold',
+                color: SpillwayColors.textLight,
+                fontSize: 32,
+                letterSpacing: -0.5,
+                textAlign: 'center',
               }}
             >
-              Put down.
+              Gone.
+            </Animated.Text>
+            <Animated.Text
+              entering={FadeIn.delay(1100).duration(500)}
+              exiting={FadeOut.duration(300)}
+              style={{
+                fontFamily: 'DMSans_400Regular',
+                color: SpillwayColors.mutedText,
+                fontSize: 14,
+                marginTop: 12,
+                textAlign: 'center',
+              }}
+            >
+              Nothing saved. Nothing to reopen.
             </Animated.Text>
           </Animated.View>
         )}

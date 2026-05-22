@@ -419,10 +419,10 @@ export default function SettingsScreen() {
                 <BrainLogo size={44} showBackground={true} />
                 <View className="ml-3">
                   <Text
-                    style={{ fontFamily: 'CormorantGaramond_600SemiBold' }}
+                    style={{ fontFamily: 'DMSans_600SemiBold' }}
                     className="text-stone-800 text-xl"
                   >
-                    ClearHead
+                    Spillway
                   </Text>
                   <Text style={{ fontFamily: 'DMSans_400Regular' }} className="text-stone-400 text-xs">
                     Version 1.0.0
