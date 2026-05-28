@@ -1,0 +1,10 @@
+# Opt-in, machine-local MCP config (copy from mcp.config.json).
+.mcp.json
+
+# Secrets — never commit API keys
+.env
+*.key
+*secret*.local*
+
+# OS / editor noise
+.DS_Store
